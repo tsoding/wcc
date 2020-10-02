@@ -3,3 +3,6 @@ WCC_LIBS=
 
 wcc: wcc.cpp
 	$(CXX) $(WCC_CXXFLAGS) -o wcc wcc.cpp $(WCC_LIBS)
+
+fib.wasm: fib.wat
+	wat2wasm fib.wat
