@@ -127,6 +127,8 @@ struct Func_Def
     Block *body;
 };
 
+void print1(FILE *stream, Statement statement);
+void print1(FILE *stream, Block *block);
 void print1(FILE *stream, Func_Def func_def);
 void print1(FILE *stream, Args_List *args_list);
 void print1(FILE *stream, Var_Def var_def);

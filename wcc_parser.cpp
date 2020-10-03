@@ -1,6 +1,33 @@
 #include "./wcc_parser.hpp"
 #include "./wcc_memory.hpp"
 
+void print1(FILE *stream, Expression expression)
+{
+    print(stream, "<expression>");
+}
+
+void print1(FILE *stream, Statement statement)
+{
+    switch (statement.type) {
+    case Statement_Type::While:
+        print(stream, "(while ", statement.hwile.condition, " ", statement.hwile.body, ")");
+        break;
+
+    default:
+        print(stream, "<statement>");
+    }
+}
+
+void print1(FILE *stream, Block *block)
+{
+    print(stream, "(");
+    while (block) {
+        print(stream, block->statement, " ");
+        block = block->next;
+    }
+    print(stream, ")");
+}
+
 void print1(FILE *stream, Type type)
 {
     switch (type) {
@@ -27,7 +54,9 @@ void print1(FILE *stream, Args_List *args_list)
 
 void print1(FILE *stream, Func_Def func_def)
 {
-    print(stream, "(func_def ", func_def.name, " ", func_def.args_list, " ", func_def.return_type, " ...)");
+    print(stream, "(func_def ", func_def.name, " ", func_def.args_list, " ",
+          func_def.return_type, " ",
+          func_def.body, ")");
 }
 
 Var_Def Parser::parse_var_def()
@@ -94,7 +123,7 @@ While Parser::parse_while()
     expect_token_type(Token_Type::While);
     tokens.chop(1);
 
-    warn("While condition parsing is not implemented");
+    warn("TODO: while condition parsing is not implemented");
     expect_token_type(Token_Type::Open_Paren);
     tokens.chop(1);
     while (tokens.count > 0 && tokens.items->type != Token_Type::Closed_Paren) {
