@@ -8,6 +8,7 @@ enum class Token_Type
     Open_Paren,
     Closed_Paren,
     Colon,
+    Comma,
     Open_Curly,
     Closed_Curly,
     Local,
@@ -18,7 +19,8 @@ enum class Token_Type
     Plus,
     Minus_Equals,
     Minus,
-    Newline,
+    Semicolon,
+    End_Of_File,
 };
 
 void print1(FILE *stream, Token_Type type);

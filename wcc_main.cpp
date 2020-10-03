@@ -5,26 +5,6 @@ void usage(FILE *stream)
     println(stream, "Usage: ./wcc <input.wc>");
 }
 
-struct Escape
-{
-    String_View unwrap;
-};
-
-void print1(FILE *stream, Escape escape)
-{
-    for (size_t i = 0; i < escape.unwrap.count; ++i) {
-        switch (escape.unwrap.data[i]) {
-        case '\a': print(stream, "\\a"); break;
-        case '\b': print(stream, "\\b"); break;
-        case '\f': print(stream, "\\f"); break;
-        case '\n': print(stream, "\\n"); break;
-        case '\r': print(stream, "\\r"); break;
-        case '\t': print(stream, "\\t"); break;
-        case '\v': print(stream, "\\v"); break;
-        default: print(stream, escape.unwrap.data[i]);
-        }
-    }
-}
 
 int main(int argc, char *argv[])
 {
@@ -49,8 +29,21 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    for (size_t i = 0; i < tokens.size; ++i) {
-        println(stdout, tokens.data[i].type, " -> \"", Escape { tokens.data[i].text }, "\"");
+
+    Parser parser = {};
+    parser.memory.capacity = 1024 * 1024 * 1024;
+    parser.memory.buffer = (uint8_t*) malloc(sizeof(uint8_t) * parser.memory.capacity);
+    parser.tokens = {tokens.size, tokens.data};
+    parser.input = input;
+    parser.filename = cstr_as_string_view(input_filepath);
+
+    Func_Def func_def = parser.parse_func_def();
+
+    println(stdout, "Parsed code: ", func_def);
+    println(stdout, "Unparsed tokens: ");
+
+    for (size_t i = 0; i < parser.tokens.count; ++i) {
+        println(stdout, "  ", parser.tokens.items[i].type, " -> \"", Escape { parser.tokens.items[i].text }, "\"");
     }
 
     return 0;

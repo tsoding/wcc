@@ -18,16 +18,10 @@ void print1(FILE *stream, Token_Type type)
     case Token_Type::Plus: print(stream, "Plus"); break;
     case Token_Type::Minus_Equals: print(stream, "Minus_Equals"); break;
     case Token_Type::Minus: print(stream, "Minus"); break;
-    case Token_Type::Newline: print(stream, "Newline"); break;
+    case Token_Type::Semicolon: print(stream, "Semicolon"); break;
+    case Token_Type::End_Of_File: print(stream, "End_Of_File"); break;
+    case Token_Type::Comma: print(stream, "Comma"); break;
     }
-}
-
-String_View trim_tabs_and_spaces(String_View s)
-{
-    while (s.count > 0 && (*s.data == ' ' || *s.data == '\t')) {
-        s.chop(1);
-    }
-    return s;
 }
 
 template <typename Predicate>
@@ -53,7 +47,7 @@ String_View chop_off(String_View *s, size_t n)
 
 Result alexer(String_View input, Dynamic_Array<Token> *tokens)
 {
-    auto source = trim_tabs_and_spaces(input);
+    auto source = input.trim_begin();
     while (source.count > 0) {
         if (isalpha(*source.data)) {
             String_View token_text = chop_while(&source, isalnum);
@@ -93,6 +87,9 @@ Result alexer(String_View input, Dynamic_Array<Token> *tokens)
             case '>':
                 tokens->push(Token {Token_Type::Greater, chop_off(&source, 1)});
                 break;
+            case ',':
+                tokens->push(Token {Token_Type::Comma, chop_off(&source, 1)});
+                break;
             case '+':
                 tokens->push(Token {Token_Type::Plus, chop_off(&source, 1)});
                 break;
@@ -103,8 +100,8 @@ Result alexer(String_View input, Dynamic_Array<Token> *tokens)
                     tokens->push(Token {Token_Type::Minus, chop_off(&source, 1)});
                 }
                 break;
-            case '\n':
-                tokens->push(Token {Token_Type::Newline, chop_off(&source, 1)});
+            case ';':
+                tokens->push(Token {Token_Type::Semicolon, chop_off(&source, 1)});
                 break;
 
             default: {
@@ -113,8 +110,10 @@ Result alexer(String_View input, Dynamic_Array<Token> *tokens)
             }
             }
         }
-        source = trim_tabs_and_spaces(source);
+        source = source.trim_begin();
     }
+
+    tokens->push(Token {Token_Type::End_Of_File, source});
 
     return {};
 }
