@@ -83,10 +83,42 @@ Type Parser::parse_type_annotation()
     auto type_name = tokens.items->text;
 
     if (type_name != "i32"_sv) {
-        fail(*tokens.items, "Unknown type `", type_name, "`");
+        fail("Unknown type `", type_name, "`");
     }
     tokens.chop(1);
     return Type::I32;
+}
+
+Statement Parser::parse_statement()
+{
+    fail("Parsing statement is not implemented");
+    return {};
+}
+
+Block *Parser::parse_block()
+{
+    expect_token_type(Token_Type::Open_Curly);
+    tokens.chop(1);
+
+    Block *result = nullptr;
+    Block *last_st = nullptr;
+
+    while (tokens.count > 0 && tokens.items->type != Token_Type::Closed_Curly) {
+        Block *st = memory.alloc<Block>();
+        st->statement = parse_statement();
+
+        if (last_st == nullptr)  {
+            result = st;
+        } else {
+            last_st->next = st;
+        }
+        last_st = st;
+    }
+
+    expect_token_type(Token_Type::Closed_Curly);
+    tokens.chop(1);
+
+    return result;
 }
 
 Func_Def Parser::parse_func_def()
@@ -102,6 +134,7 @@ Func_Def Parser::parse_func_def()
 
     func_def.args_list = parse_args_list();
     func_def.return_type = parse_type_annotation();
+    func_def.body = parse_block();
 
     return func_def;
 }

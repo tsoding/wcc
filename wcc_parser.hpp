@@ -202,8 +202,11 @@ struct Parser
     String_View filename;
 
     template <typename... Args>
-    void fail(Token place, Args... args)
+    void fail(Args... args)
     {
+        assert(tokens.count > 0);
+        Token place = *tokens.items;
+
         size_t offset = place.text.data - input.data;
         size_t line_number = 1;
 
@@ -228,7 +231,7 @@ struct Parser
     {
         assert(tokens.count > 0);
         if (expected_type != tokens.items->type) {
-            fail(*tokens.items, "Expected ", expected_type, " but got ", tokens.items->type);
+            fail("Expected ", expected_type, " but got `", Escape { tokens.items->text }, "`");
         }
     }
 
@@ -236,6 +239,8 @@ struct Parser
     Var_Def parse_var_def();
     Args_List *parse_args_list();
     Func_Def parse_func_def();
+    Statement parse_statement();
+    Block *parse_block();
 };
 
 #endif  // WCC_PARSER_HPP_
