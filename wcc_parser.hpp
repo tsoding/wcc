@@ -17,6 +17,7 @@ struct Var_Def
 
 enum class Statement_Type
 {
+    None,
     Local_Var_Def,
     While,
     Assignment,
@@ -246,6 +247,7 @@ struct Parser
         }
     }
 
+    Local_Var_Def parse_local_var_def();
     While parse_while();
     Type parse_type_annotation();
     Var_Def parse_var_def();

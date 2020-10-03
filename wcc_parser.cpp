@@ -13,6 +13,10 @@ void print1(FILE *stream, Statement statement)
         print(stream, "(while ", statement.hwile.condition, " ", statement.hwile.body, ")");
         break;
 
+    case Statement_Type::Local_Var_Def:
+        print(stream, "(local ", statement.local_var_def.def, " ", statement.local_var_def.value, ")");
+        break;
+
     default:
         print(stream, "<statement>");
     }
@@ -161,6 +165,10 @@ Statement Parser::parse_statement()
         result.type = Statement_Type::While;
         result.hwile = parse_while();
         break;
+    case Token_Type::Local:
+        result.type = Statement_Type::Local_Var_Def;
+        result.local_var_def = parse_local_var_def();
+        break;
     default: {
         result = parse_dummy_statement();
     }
@@ -211,4 +219,26 @@ Func_Def Parser::parse_func_def()
     func_def.body = parse_block();
 
     return func_def;
+}
+
+Local_Var_Def Parser::parse_local_var_def()
+{
+    Local_Var_Def local_var_def = {};
+
+    expect_token_type(Token_Type::Local);
+    tokens.chop(1);
+
+    local_var_def.def = parse_var_def();
+
+    expect_token_type(Token_Type::Equals);
+    tokens.chop(1);
+
+    while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
+        tokens.chop(1);
+    }
+
+    expect_token_type(Token_Type::Semicolon);
+    tokens.chop(1);
+
+    return local_var_def;
 }
