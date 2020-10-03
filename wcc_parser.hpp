@@ -209,18 +209,21 @@ struct Parser
         assert(tokens.count > 0);
         Token place = *tokens.items;
 
-        size_t offset = place.text.data - input.data;
-        size_t line_number = 1;
-
         String_View input0 = input;
         String_View line = input0.chop_by_delim('\n');
-        while (offset > line.count) {
-            offset -= line.count;
-            line = input0.chop_by_delim('\n');
-            line_number += 1;
-        }
 
-        println(stderr, filename, ":", line_number, ":", offset, ": ", args...);
+        size_t offset = place.text.data - input.data;
+
+        for (size_t line_number = 1; input0.count > 0; ++line_number) {
+            line = input0.chop_by_delim('\n');
+
+            if (offset <= line.count) {
+                println(stderr, filename, ":", line_number, ":", offset, ": ", args...);
+                break;
+            }
+
+            offset -= line.count + 1;
+        }
     }
 
     template <typename... Args>
