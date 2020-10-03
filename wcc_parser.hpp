@@ -202,7 +202,7 @@ struct Parser
     String_View filename;
 
     template <typename... Args>
-    void fail(Args... args)
+    void warn(Args... args)
     {
         assert(tokens.count > 0);
         Token place = *tokens.items;
@@ -219,6 +219,12 @@ struct Parser
         }
 
         println(stderr, filename, ":", line_number, ":", offset, ": ", args...);
+    }
+
+    template <typename... Args>
+    void fail(Args... args)
+    {
+        warn(args...);
 
         println(stdout, "Unparsed tokens: ");
         for (size_t i = 0; i < tokens.count; ++i) {
@@ -235,12 +241,14 @@ struct Parser
         }
     }
 
+    While parse_while();
     Type parse_type_annotation();
     Var_Def parse_var_def();
     Args_List *parse_args_list();
     Func_Def parse_func_def();
     Statement parse_statement();
     Block *parse_block();
+    Statement parse_dummy_statement();
 };
 
 #endif  // WCC_PARSER_HPP_

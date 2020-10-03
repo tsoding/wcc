@@ -89,10 +89,55 @@ Type Parser::parse_type_annotation()
     return Type::I32;
 }
 
+While Parser::parse_while()
+{
+    expect_token_type(Token_Type::While);
+    tokens.chop(1);
+
+    warn("While condition parsing is not implemented");
+    expect_token_type(Token_Type::Open_Paren);
+    tokens.chop(1);
+    while (tokens.count > 0 && tokens.items->type != Token_Type::Closed_Paren) {
+        tokens.chop(1);
+    }
+    expect_token_type(Token_Type::Closed_Paren);
+    tokens.chop(1);
+
+    While result = {};
+    result.body = parse_block();
+
+    return result;
+}
+
+Statement Parser::parse_dummy_statement()
+{
+    while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
+        tokens.chop(1);
+    }
+
+    expect_token_type(Token_Type::Semicolon);
+    tokens.chop(1);
+
+    return {};
+}
+
 Statement Parser::parse_statement()
 {
-    fail("Parsing statement is not implemented");
-    return {};
+    assert(tokens.count > 0);
+
+    Statement result = {};
+
+    switch (tokens.items->type) {
+    case Token_Type::While:
+        result.type = Statement_Type::While;
+        result.hwile = parse_while();
+        break;
+    default: {
+        result = parse_dummy_statement();
+    }
+    }
+
+    return result;
 }
 
 Block *Parser::parse_block()
