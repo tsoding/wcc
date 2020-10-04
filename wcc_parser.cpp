@@ -12,11 +12,15 @@ void print1(FILE *stream, Statement statement)
     case Statement_Type::While:
         print(stream, "(while ", statement.hwile.condition, " ", statement.hwile.body, ")");
         break;
-
     case Statement_Type::Local_Var_Def:
         print(stream, "(local ", statement.local_var_def.def, " ", statement.local_var_def.value, ")");
         break;
-
+    case Statement_Type::Assignment:
+        print(stream, "(= ", statement.assignment.var_name, " ", statement.assignment.value, ")");
+        break;
+    case Statement_Type::Subtract_Assignment:
+        print(stream, "(-= ", statement.subtract_assignment.var_name, " ", statement.subtract_assignment.value, ")");
+        break;
     default:
         print(stream, "<statement>");
     }
