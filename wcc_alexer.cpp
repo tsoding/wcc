@@ -24,7 +24,6 @@ void print1(FILE *stream, Token_Type type)
     case Token_Type::Minus_Equals: print(stream, "Minus_Equals"); break;
     case Token_Type::Minus: print(stream, "Minus"); break;
     case Token_Type::Semicolon: print(stream, "Semicolon"); break;
-    case Token_Type::End_Of_File: print(stream, "End_Of_File"); break;
     case Token_Type::Comma: print(stream, "Comma"); break;
     }
 }
@@ -117,8 +116,6 @@ Result alexer(String_View input, Dynamic_Array<Token> *tokens)
         }
         source = source.trim_begin();
     }
-
-    tokens->push(Token {Token_Type::End_Of_File, source});
 
     return {};
 }

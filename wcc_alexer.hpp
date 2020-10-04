@@ -20,7 +20,6 @@ enum class Token_Type
     Minus_Equals,
     Minus,
     Semicolon,
-    End_Of_File,
 };
 
 void print1(FILE *stream, Token_Type type);

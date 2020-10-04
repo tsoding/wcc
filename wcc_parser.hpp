@@ -74,25 +74,25 @@ struct Block;
 struct Local_Var_Def
 {
     Var_Def def;
-    Expression value;
+    Expression *value;
 };
 
 struct While
 {
-    Expression condition;
+    Expression *condition;
     Block *body;
 };
 
 struct Assignment
 {
     String_View var_name;
-    Expression value;
+    Expression *value;
 };
 
 struct Subtract_Assignment
 {
     String_View var_name;
-    Expression value;
+    Expression *value;
 };
 
 struct Statement
@@ -104,7 +104,7 @@ struct Statement
         While hwile;
         Assignment assignment;
         Subtract_Assignment subtract_assignment;
-        Expression expression;
+        Expression *expression;
     };
 };
 
@@ -281,7 +281,10 @@ struct Parser
     Block *parse_block();
     Statement parse_dummy_statement();
     Subtract_Assignment parse_subtract_assignment();
-    Expression parse_expression();
+    Expression *parse_plus_expression();
+    Expression *parse_greater_expression();
+    Expression *parse_expression();
+    Expression *parse_primary();
 };
 
 #endif  // WCC_PARSER_HPP_

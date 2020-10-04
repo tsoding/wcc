@@ -12,6 +12,7 @@ struct Memory
     {
         assert(size + sizeof(T) <= capacity);
         T *result = reinterpret_cast<T*>(buffer + size);
+        memset(result, 0, sizeof(T));
         size += sizeof(T);
         return result;
     }

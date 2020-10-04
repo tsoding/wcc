@@ -3,29 +3,42 @@
 
 void print1(FILE *stream, Expression expression)
 {
-    print(stream, "<expression>");
+    switch (expression.type) {
+    case Expression_Type::Number_Literal:
+        print(stream, expression.number_literal.unwrap);
+        break;
+    case Expression_Type::Variable:
+        print(stream, expression.variable.name);
+        break;
+    case Expression_Type::Plus:
+        print(stream, "(+ ", *expression.plus.lhs, " ", *expression.plus.rhs, ")");
+        break;
+    case Expression_Type::Greater:
+        print(stream, "(> ", *expression.greater.lhs, " ", *expression.greater.rhs, ")");
+        break;
+    }
 }
 
 void print1(FILE *stream, Statement statement)
 {
     switch (statement.type) {
     case Statement_Type::While:
-        print(stream, "(while ", statement.hwile.condition, " ", statement.hwile.body, ")");
+        print(stream, "(while ", *statement.hwile.condition, " ", statement.hwile.body, ")");
         break;
     case Statement_Type::Local_Var_Def:
-        print(stream, "(local ", statement.local_var_def.def, " ", statement.local_var_def.value, ")");
+        print(stream, "(local ", statement.local_var_def.def, " ", *statement.local_var_def.value, ")");
         break;
     case Statement_Type::Assignment:
-        print(stream, "(= ", statement.assignment.var_name, " ", statement.assignment.value, ")");
+        print(stream, "(= ", statement.assignment.var_name, " ", *statement.assignment.value, ")");
         break;
     case Statement_Type::Subtract_Assignment:
-        print(stream, "(-= ", statement.subtract_assignment.var_name, " ", statement.subtract_assignment.value, ")");
+        print(stream, "(-= ", statement.subtract_assignment.var_name, " ", *statement.subtract_assignment.value, ")");
         break;
     case Statement_Type::None:
         print(stream, "None");
         break;
     case Statement_Type::Expression:
-        print(stream, statement.expression);
+        print(stream, *statement.expression);
         break;
     }
 }
@@ -132,18 +145,19 @@ Type Parser::parse_type_annotation()
 
 While Parser::parse_while()
 {
+    While result = {};
+
     expect_token_type(Token_Type::While);
     tokens.chop(1);
 
     expect_token_type(Token_Type::Open_Paren);
     tokens.chop(1);
-    while (tokens.count > 0 && tokens.items->type != Token_Type::Closed_Paren) {
-        tokens.chop(1);
-    }
+
+    result.condition = parse_expression();
+
     expect_token_type(Token_Type::Closed_Paren);
     tokens.chop(1);
 
-    While result = {};
     result.body = parse_block();
 
     return result;
@@ -172,9 +186,7 @@ Assignment Parser::parse_assignment()
     expect_token_type(Token_Type::Equals);
     tokens.chop(1);
 
-    auto expression_parser = *this;
-    expression_parser.tokens = tokens.chop_until(is_semicolon);
-    assignment.value = expression_parser.parse_expression();
+    assignment.value = parse_expression();
 
     expect_token_type(Token_Type::Semicolon);
     tokens.chop(1);
@@ -193,9 +205,7 @@ Subtract_Assignment Parser::parse_subtract_assignment()
     expect_token_type(Token_Type::Minus_Equals);
     tokens.chop(1);
 
-    auto expression_parser = *this;
-    expression_parser.tokens = tokens.chop_until(is_semicolon);
-    subtract_assignment.value = expression_parser.parse_expression();
+    subtract_assignment.value = parse_expression();
 
     expect_token_type(Token_Type::Semicolon);
     tokens.chop(1);
@@ -230,11 +240,17 @@ Statement Parser::parse_statement()
             result.subtract_assignment = parse_subtract_assignment();
             break;
         default:
-            result = parse_dummy_statement();
+            result.type = Statement_Type::Expression;
+            result.expression = parse_expression();
+            expect_token_type(Token_Type::Semicolon);
+            tokens.chop(1);
         }
         break;
     default:
-        result = parse_dummy_statement();
+        result.type = Statement_Type::Expression;
+        result.expression = parse_expression();
+        expect_token_type(Token_Type::Semicolon);
+        tokens.chop(1);
     }
 
     return result;
@@ -296,9 +312,7 @@ Local_Var_Def Parser::parse_local_var_def()
     expect_token_type(Token_Type::Equals);
     tokens.chop(1);
 
-    auto expression_parser = *this;
-    expression_parser.tokens = tokens.chop_until(is_semicolon);
-    local_var_def.value = expression_parser.parse_expression();
+    local_var_def.value = parse_expression();
 
     expect_token_type(Token_Type::Semicolon);
     tokens.chop(1);
@@ -306,7 +320,86 @@ Local_Var_Def Parser::parse_local_var_def()
     return local_var_def;
 }
 
-Expression Parser::parse_expression()
+Expression *Parser::parse_primary()
 {
-    return {};
+    assert(tokens.count > 0);
+
+    Expression *primary_expression = memory.alloc<Expression>();
+
+    switch (tokens.items->type) {
+    case Token_Type::Number_Literal: {
+        primary_expression->type = Expression_Type::Number_Literal;
+        Maybe<uint32_t> x = tokens.items->text.as_integer<uint32_t>();
+        assert(x.has_value);
+        primary_expression->number_literal.unwrap = x.unwrap;
+        tokens.chop(1);
+    } break;
+
+    case Token_Type::Symbol: {
+        primary_expression->type = Expression_Type::Variable;
+        primary_expression->variable.name = tokens.items->text;
+        tokens.chop(1);
+    } break;
+
+    case Token_Type::Open_Paren: {
+        tokens.chop(1);
+        primary_expression = parse_expression();
+        expect_token_type(Token_Type::Closed_Paren);
+        tokens.chop(1);
+    } break;
+
+    default:
+        fail("Unexpected token in an expression");
+    }
+
+    return primary_expression;
+}
+
+Expression *Parser::parse_plus_expression()
+{
+    Expression *lhs = parse_primary();
+
+    if (tokens.count == 0 || tokens.items->type != Token_Type::Plus) {
+        return lhs;
+    }
+
+    expect_token_type(Token_Type::Plus);
+    tokens.chop(1);
+
+    Expression *rhs = parse_primary();
+
+    Expression *plus_expression = memory.alloc<Expression>();
+    plus_expression->type = Expression_Type::Plus;
+    plus_expression->plus.lhs = lhs;
+    plus_expression->plus.rhs = rhs;
+
+    return plus_expression;
+}
+
+Expression *Parser::parse_greater_expression()
+{
+    Expression *lhs = parse_plus_expression();
+
+    if (tokens.count == 0 || tokens.items->type != Token_Type::Greater) {
+        return lhs;
+    }
+
+    expect_token_type(Token_Type::Greater);
+    tokens.chop(1);
+
+    Expression *rhs = parse_plus_expression();
+
+    Expression *greater_expression = memory.alloc<Expression>();
+    greater_expression->type = Expression_Type::Greater;
+    greater_expression->greater.lhs = lhs;
+    greater_expression->greater.rhs = rhs;
+
+    return greater_expression;
+}
+
+Expression *Parser::parse_expression()
+{
+    assert(tokens.count > 0);
+
+    return parse_greater_expression();
 }
