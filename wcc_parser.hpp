@@ -210,11 +210,10 @@ struct Parser
         assert(tokens.count > 0);
         Token place = *tokens.items;
 
-        String_View input0 = input;
-        String_View line = input0.chop_by_delim('\n');
-
         size_t offset = place.text.data - input.data;
 
+        String_View input0 = input;
+        String_View line = input0.chop_by_delim('\n');
         for (size_t line_number = 1; input0.count > 0; ++line_number) {
             line = input0.chop_by_delim('\n');
 
@@ -247,6 +246,7 @@ struct Parser
         }
     }
 
+    Assignment parse_assignment();
     Local_Var_Def parse_local_var_def();
     While parse_while();
     Type parse_type_annotation();
@@ -256,6 +256,7 @@ struct Parser
     Statement parse_statement();
     Block *parse_block();
     Statement parse_dummy_statement();
+    Subtract_Assignment parse_subtract_assignment();
 };
 
 #endif  // WCC_PARSER_HPP_

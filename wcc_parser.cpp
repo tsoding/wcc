@@ -127,7 +127,6 @@ While Parser::parse_while()
     expect_token_type(Token_Type::While);
     tokens.chop(1);
 
-    warn("TODO: while condition parsing is not implemented");
     expect_token_type(Token_Type::Open_Paren);
     tokens.chop(1);
     while (tokens.count > 0 && tokens.items->type != Token_Type::Closed_Paren) {
@@ -154,12 +153,55 @@ Statement Parser::parse_dummy_statement()
     return {};
 }
 
+Assignment Parser::parse_assignment()
+{
+    Assignment assignment = {};
+
+    expect_token_type(Token_Type::Symbol);
+    assignment.var_name = tokens.items->text;
+    tokens.chop(1);
+
+    expect_token_type(Token_Type::Equals);
+    tokens.chop(1);
+
+    while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
+        tokens.chop(1);
+    }
+
+    expect_token_type(Token_Type::Semicolon);
+    tokens.chop(1);
+
+    return assignment;
+}
+
+Subtract_Assignment Parser::parse_subtract_assignment()
+{
+    Subtract_Assignment subtract_assignment = {};
+
+    expect_token_type(Token_Type::Symbol);
+    subtract_assignment.var_name = tokens.items->text;
+
+    tokens.chop(1);
+
+    expect_token_type(Token_Type::Minus_Equals);
+    tokens.chop(1);
+
+    while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
+        tokens.chop(1);
+    }
+
+    expect_token_type(Token_Type::Semicolon);
+    tokens.chop(1);
+
+    return subtract_assignment;
+}
+
 Statement Parser::parse_statement()
 {
-    assert(tokens.count > 0);
 
     Statement result = {};
 
+    assert(tokens.count > 0);
     switch (tokens.items->type) {
     case Token_Type::While:
         result.type = Statement_Type::While;
@@ -169,9 +211,23 @@ Statement Parser::parse_statement()
         result.type = Statement_Type::Local_Var_Def;
         result.local_var_def = parse_local_var_def();
         break;
-    default: {
+    case Token_Type::Symbol:
+        assert(tokens.count > 1);
+        switch (tokens.items[1].type) {
+        case Token_Type::Equals:
+            result.type = Statement_Type::Assignment;
+            result.assignment = parse_assignment();
+            break;
+        case Token_Type::Minus_Equals:
+            result.type = Statement_Type::Subtract_Assignment;
+            result.subtract_assignment = parse_subtract_assignment();
+            break;
+        default:
+            fail("Expected assignment");
+        }
+        break;
+    default:
         result = parse_dummy_statement();
-    }
     }
 
     return result;
