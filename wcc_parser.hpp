@@ -174,6 +174,20 @@ struct View
 
         return chunk;
     }
+
+    template <typename Predicate>
+    View<T> chop_until(Predicate predicate)
+    {
+        size_t n = 0;
+        while (n < count && !predicate(items[n])) {
+            n += 1;
+        }
+
+        View<T> chunk = subview(0, n);
+        chop(n);
+
+        return chunk;
+    }
 };
 
 struct Escape
@@ -267,6 +281,7 @@ struct Parser
     Block *parse_block();
     Statement parse_dummy_statement();
     Subtract_Assignment parse_subtract_assignment();
+    Expression parse_expression();
 };
 
 #endif  // WCC_PARSER_HPP_

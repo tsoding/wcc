@@ -21,8 +21,12 @@ void print1(FILE *stream, Statement statement)
     case Statement_Type::Subtract_Assignment:
         print(stream, "(-= ", statement.subtract_assignment.var_name, " ", statement.subtract_assignment.value, ")");
         break;
-    default:
-        print(stream, "<statement>");
+    case Statement_Type::None:
+        print(stream, "None");
+        break;
+    case Statement_Type::Expression:
+        print(stream, statement.expression);
+        break;
     }
 }
 
@@ -168,10 +172,9 @@ Assignment Parser::parse_assignment()
     expect_token_type(Token_Type::Equals);
     tokens.chop(1);
 
-    warn("TODO: parse_assignment does not parse the expression");
-    while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
-        tokens.chop(1);
-    }
+    auto expression_parser = *this;
+    expression_parser.tokens = tokens.chop_until(is_semicolon);
+    assignment.value = expression_parser.parse_expression();
 
     expect_token_type(Token_Type::Semicolon);
     tokens.chop(1);
@@ -185,16 +188,14 @@ Subtract_Assignment Parser::parse_subtract_assignment()
 
     expect_token_type(Token_Type::Symbol);
     subtract_assignment.var_name = tokens.items->text;
-
     tokens.chop(1);
 
     expect_token_type(Token_Type::Minus_Equals);
     tokens.chop(1);
 
-    warn("TODO: parse_subtract_assignment() does not parse the expression");
-    while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
-        tokens.chop(1);
-    }
+    auto expression_parser = *this;
+    expression_parser.tokens = tokens.chop_until(is_semicolon);
+    subtract_assignment.value = expression_parser.parse_expression();
 
     expect_token_type(Token_Type::Semicolon);
     tokens.chop(1);
@@ -295,13 +296,17 @@ Local_Var_Def Parser::parse_local_var_def()
     expect_token_type(Token_Type::Equals);
     tokens.chop(1);
 
-    warn("TODO: parse_local_var_def does not parse value expression");
-    while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
-        tokens.chop(1);
-    }
+    auto expression_parser = *this;
+    expression_parser.tokens = tokens.chop_until(is_semicolon);
+    local_var_def.value = expression_parser.parse_expression();
 
     expect_token_type(Token_Type::Semicolon);
     tokens.chop(1);
 
     return local_var_def;
+}
+
+Expression Parser::parse_expression()
+{
+    return {};
 }

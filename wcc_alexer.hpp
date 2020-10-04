@@ -31,6 +31,8 @@ struct Token
     String_View text;
 };
 
+bool is_semicolon(Token type);
+
 struct Result
 {
     bool failed;
