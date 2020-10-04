@@ -41,10 +41,7 @@ int main(int argc, char *argv[])
 
     println(stdout, "Parsed code: ", func_def);
     println(stdout, "Unparsed tokens: ");
-
-    for (size_t i = 0; i < parser.tokens.count; ++i) {
-        println(stdout, "  ", parser.tokens.items[i].type, " -> \"", Escape { parser.tokens.items[i].text }, "\"");
-    }
+    parser.dump_tokens();
 
     return 0;
 }

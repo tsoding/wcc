@@ -168,6 +168,7 @@ Assignment Parser::parse_assignment()
     expect_token_type(Token_Type::Equals);
     tokens.chop(1);
 
+    warn("TODO: parse_assignment does not parse the expression");
     while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
         tokens.chop(1);
     }
@@ -190,6 +191,7 @@ Subtract_Assignment Parser::parse_subtract_assignment()
     expect_token_type(Token_Type::Minus_Equals);
     tokens.chop(1);
 
+    warn("TODO: parse_subtract_assignment() does not parse the expression");
     while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
         tokens.chop(1);
     }
@@ -227,7 +229,7 @@ Statement Parser::parse_statement()
             result.subtract_assignment = parse_subtract_assignment();
             break;
         default:
-            fail("Expected assignment");
+            result = parse_dummy_statement();
         }
         break;
     default:
@@ -293,6 +295,7 @@ Local_Var_Def Parser::parse_local_var_def()
     expect_token_type(Token_Type::Equals);
     tokens.chop(1);
 
+    warn("TODO: parse_local_var_def does not parse value expression");
     while (tokens.count > 0 && tokens.items->type != Token_Type::Semicolon) {
         tokens.chop(1);
     }

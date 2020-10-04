@@ -205,7 +205,7 @@ struct Parser
     String_View filename;
 
     template <typename... Args>
-    void warn(Args... args)
+    void inform(Args... args)
     {
         assert(tokens.count > 0);
         Token place = *tokens.items;
@@ -226,15 +226,26 @@ struct Parser
     }
 
     template <typename... Args>
+    void warn(Args... args)
+    {
+        inform("warning: ", args...);
+    }
+
+    template <typename... Args>
     void fail(Args... args)
     {
-        warn(args...);
+        inform("error: ", args...);
 
         println(stdout, "Unparsed tokens: ");
+        dump_tokens();
+        exit(1);
+    }
+
+    void dump_tokens()
+    {
         for (size_t i = 0; i < tokens.count; ++i) {
             println(stdout, "  ", tokens.items[i].type, " -> \"", Escape { tokens.items[i].text }, "\"");
         }
-        exit(1);
     }
 
     void expect_token_type(Token_Type expected_type)
