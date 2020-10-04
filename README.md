@@ -6,6 +6,6 @@ Low level language that compiles directly to WebAssembly. The goal of the projec
 
 - [X] Tokenizer
 - [X] AST model
-- [ ] Parser
+- [X] Parser
 - [ ] Code Generation
 - [ ] Type Checking
