@@ -213,9 +213,8 @@ struct Parser
         size_t offset = place.text.data - input.data;
 
         String_View input0 = input;
-        String_View line = input0.chop_by_delim('\n');
         for (size_t line_number = 1; input0.count > 0; ++line_number) {
-            line = input0.chop_by_delim('\n');
+            String_View line = input0.chop_by_delim('\n');
 
             if (offset <= line.count) {
                 println(stderr, filename, ":", line_number, ":", offset, ": ", args...);
