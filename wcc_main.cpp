@@ -36,24 +36,28 @@ struct S_Expr
 
 void print1(FILE *stream, S_Expr *expr)
 {
-    switch (expr->type) {
-    case S_Expr_Type::Atom: {
-        print(stream, expr->atom.name);
-    } break;
+    if (expr == nullptr) {
+        print(stream, "()");
+    } else {
+        switch (expr->type) {
+        case S_Expr_Type::Atom: {
+            print(stream, expr->atom.name);
+        } break;
 
-    case S_Expr_Type::Cons: {
-        print(stream, "(");
-        while (expr && expr->type == S_Expr_Type::Cons) {
-            print(stream, expr->cons.head, " ");
-            expr = expr->cons.tail;
+        case S_Expr_Type::Cons: {
+            print(stream, "(");
+            while (expr && expr->type == S_Expr_Type::Cons) {
+                print(stream, expr->cons.head, " ");
+                expr = expr->cons.tail;
+            }
+
+            if (expr) {
+                print(stream, " . ", expr);
+            }
+
+            print(stream, ")");
+        } break;
         }
-
-        if (expr) {
-            print(stream, " . ", expr);
-        }
-
-        print(stream, ")");
-    } break;
     }
 }
 
