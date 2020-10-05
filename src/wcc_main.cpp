@@ -63,7 +63,7 @@ void print1(FILE *stream, S_Expr *expr)
 
 struct Wat_Compiler
 {
-    Memory memory;
+    Linear_Memory memory;
 
     S_Expr *atom(String_View name)
     {

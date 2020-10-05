@@ -227,7 +227,7 @@ void print1(FILE *stream, Escape escape)
 
 struct Parser
 {
-    Memory memory;
+    Linear_Memory memory;
     View<Token> tokens;
     String_View input;
     String_View filename;
