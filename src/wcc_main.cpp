@@ -185,5 +185,7 @@ int main(int argc, char *argv[])
     println(stdout, "Generated WAT:");
     println(stdout, "    ", wat_compiler.compile_module_to_wat(module));
 
+    println(stdout, "Used memory: ", wat_compiler.memory.size, " bytes");
+
     return 0;
 }
