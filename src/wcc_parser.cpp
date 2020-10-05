@@ -121,7 +121,7 @@ Args_List *Parser::parse_args_list()
     Args_List *last_arg = nullptr;
 
     while (tokens.count > 0) {
-        Args_List *arg = memory.alloc<Args_List>();
+        Args_List *arg = memory->alloc<Args_List>();
         arg->var_def = parse_var_def();
 
         if (last_arg == nullptr)  {
@@ -280,7 +280,7 @@ Block *Parser::parse_block()
     Block *last_st = nullptr;
 
     while (tokens.count > 0 && tokens.items->type != Token_Type::Closed_Curly) {
-        Block *st = memory.alloc<Block>();
+        Block *st = memory->alloc<Block>();
         st->statement = parse_statement();
 
         if (last_st == nullptr)  {
@@ -339,7 +339,7 @@ Expression *Parser::parse_primary()
 {
     assert(tokens.count > 0);
 
-    Expression *primary_expression = memory.alloc<Expression>();
+    Expression *primary_expression = memory->alloc<Expression>();
 
     switch (tokens.items->type) {
     case Token_Type::Number_Literal: {
@@ -383,7 +383,7 @@ Expression *Parser::parse_plus_expression()
 
     Expression *rhs = parse_primary();
 
-    Expression *plus_expression = memory.alloc<Expression>();
+    Expression *plus_expression = memory->alloc<Expression>();
     plus_expression->type = Expression_Type::Plus;
     plus_expression->plus.lhs = lhs;
     plus_expression->plus.rhs = rhs;
@@ -404,7 +404,7 @@ Expression *Parser::parse_greater_expression()
 
     Expression *rhs = parse_plus_expression();
 
-    Expression *greater_expression = memory.alloc<Expression>();
+    Expression *greater_expression = memory->alloc<Expression>();
     greater_expression->type = Expression_Type::Greater;
     greater_expression->greater.lhs = lhs;
     greater_expression->greater.rhs = rhs;
@@ -421,7 +421,7 @@ Expression *Parser::parse_expression()
 
 Top_Level_Def *Parser::parse_top_level_def()
 {
-    auto top_level_def = memory.alloc<Top_Level_Def>();
+    auto top_level_def = memory->alloc<Top_Level_Def>();
     top_level_def->func_def = parse_func_def();
     return top_level_def;
 }

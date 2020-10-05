@@ -63,11 +63,11 @@ void print1(FILE *stream, S_Expr *expr)
 
 struct Wat_Compiler
 {
-    Linear_Memory memory;
+    Linear_Memory *memory;
 
     S_Expr *atom(String_View name)
     {
-        S_Expr *expr = memory.alloc<S_Expr>();
+        S_Expr *expr = memory->alloc<S_Expr>();
         expr->type = S_Expr_Type::Atom;
         expr->atom.name = name;
         return expr;
@@ -75,7 +75,7 @@ struct Wat_Compiler
 
     S_Expr *cons(S_Expr *head, S_Expr *tail)
     {
-        S_Expr *expr = memory.alloc<S_Expr>();
+        S_Expr *expr = memory->alloc<S_Expr>();
         expr->type = S_Expr_Type::Cons;
         expr->cons.head = head;
         expr->cons.tail = tail;
@@ -98,7 +98,7 @@ struct Wat_Compiler
     {
         String_Buffer buffer = {};
         buffer.capacity = (s.count + ...) + 1;
-        buffer.data = memory.alloc<char>(buffer.capacity);
+        buffer.data = memory->alloc<char>(buffer.capacity);
         sprintln(&buffer, s...);
         return buffer.view();
     }
@@ -163,15 +163,17 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    Linear_Memory memory = {};
+    memory.capacity = 1024 * 1024 * 1024;
+    memory.buffer = (uint8_t*) malloc(sizeof(uint8_t) * memory.capacity);
+
     Parser parser = {};
-    parser.memory.capacity = 1024 * 1024 * 1024;
-    parser.memory.buffer = (uint8_t*) malloc(sizeof(uint8_t) * parser.memory.capacity);
+    parser.memory = &memory;
     parser.tokens = {tokens.size, tokens.data};
     parser.input = input;
     parser.filename = cstr_as_string_view(input_filepath);
 
     Module module = parser.parse_module();
-
     println(stdout, "Parsed code:");
     println(stdout, "    ", module);
 
@@ -180,12 +182,11 @@ int main(int argc, char *argv[])
     }
 
     Wat_Compiler wat_compiler = {};
-    // TODO: Parser and Compile should share Memory via ptr
-    wat_compiler.memory = parser.memory;
+    wat_compiler.memory = &memory;
     println(stdout, "Generated WAT:");
     println(stdout, "    ", wat_compiler.compile_module_to_wat(module));
 
-    println(stdout, "Used memory: ", wat_compiler.memory.size, " bytes");
+    println(stdout, "Used memory: ", wat_compiler.memory->size, " bytes");
 
     return 0;
 }
