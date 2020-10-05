@@ -88,9 +88,9 @@ struct Wat_Compiler
         return expr;
     }
 
-    S_Expr *list(S_Expr *head)
+    S_Expr *list()
     {
-        return cons(head, nullptr);
+        return nullptr;
     }
 
     template <typename... Tail>
