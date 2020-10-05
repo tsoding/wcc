@@ -37,11 +37,14 @@ int main(int argc, char *argv[])
     parser.input = input;
     parser.filename = cstr_as_string_view(input_filepath);
 
-    Func_Def func_def = parser.parse_func_def();
+    Module module = parser.parse_module();
 
-    println(stdout, "Parsed code: ", func_def);
-    println(stdout, "Unparsed tokens: ");
-    parser.dump_tokens();
+    println(stdout, "Parsed code: ", module);
+
+    if (parser.tokens.count > 0) {
+        parser.fail("The tokens were not fully parsed");
+    }
+
 
     return 0;
 }

@@ -1,6 +1,21 @@
 #include "./wcc_parser.hpp"
 #include "./wcc_memory.hpp"
 
+void print1(FILE *stream, Top_Level_Def *top_level_def)
+{
+    print(stream, "(");
+    while (top_level_def) {
+        print(stream, top_level_def->func_def, " ");
+        top_level_def = top_level_def->next;
+    }
+    print(stream, ")");
+}
+
+void print1(FILE *stream, Module module)
+{
+    print(stream, "(module ", module.top_level_defs, ")");
+}
+
 void print1(FILE *stream, Expression expression)
 {
     switch (expression.type) {
@@ -402,4 +417,32 @@ Expression *Parser::parse_expression()
     assert(tokens.count > 0);
 
     return parse_greater_expression();
+}
+
+Top_Level_Def *Parser::parse_top_level_def()
+{
+    auto top_level_def = memory.alloc<Top_Level_Def>();
+    top_level_def->func_def = parse_func_def();
+    return top_level_def;
+}
+
+Module Parser::parse_module()
+{
+    Module module = {};
+
+    Top_Level_Def *last_top_level_def = nullptr;
+
+    while (tokens.count > 0) {
+        auto top_level_def = parse_top_level_def();
+
+        if (module.top_level_defs == nullptr) {
+            module.top_level_defs = top_level_def;
+        } else {
+            last_top_level_def->next = top_level_def;
+        }
+
+        last_top_level_def = top_level_def;
+    }
+
+    return module;
 }

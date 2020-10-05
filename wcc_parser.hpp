@@ -128,6 +128,20 @@ struct Func_Def
     Block *body;
 };
 
+struct Top_Level_Def
+{
+    Func_Def func_def;
+    Top_Level_Def *next;
+};
+
+struct Module
+{
+    Top_Level_Def *top_level_defs;
+};
+
+// TODO: pretty-printing for AST
+void print1(FILE *stream, Top_Level_Def top_level_def);
+void print1(FILE *stream, Module module);
 void print1(FILE *stream, Statement statement);
 void print1(FILE *stream, Block *block);
 void print1(FILE *stream, Func_Def func_def);
@@ -285,6 +299,8 @@ struct Parser
     Expression *parse_greater_expression();
     Expression *parse_expression();
     Expression *parse_primary();
+    Top_Level_Def *parse_top_level_def();
+    Module parse_module();
 };
 
 #endif  // WCC_PARSER_HPP_
