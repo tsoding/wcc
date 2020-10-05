@@ -8,12 +8,13 @@ struct Memory
     uint8_t *buffer;
 
     template <typename T>
-    T *alloc()
+    T *alloc(size_t n = 1)
     {
-        assert(size + sizeof(T) <= capacity);
+        assert(n > 0);
+        assert(size + sizeof(T) * n <= capacity);
         T *result = reinterpret_cast<T*>(buffer + size);
-        memset(result, 0, sizeof(T));
-        size += sizeof(T);
+        memset(result, 0, sizeof(T) * n);
+        size += sizeof(T) * n;
         return result;
     }
 };
