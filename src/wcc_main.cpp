@@ -46,8 +46,14 @@ void print1(FILE *stream, S_Expr *expr)
 
         case S_Expr_Type::Cons: {
             print(stream, "(");
+            bool first = false;
             while (expr && expr->type == S_Expr_Type::Cons) {
-                print(stream, expr->cons.head, " ");
+                if (!first) {
+                    first = true;
+                } else {
+                    print(stream, " ");
+                }
+                print(stream, expr->cons.head);
                 expr = expr->cons.tail;
             }
 
@@ -103,18 +109,50 @@ struct Wat_Compiler
         return buffer.view();
     }
 
+    S_Expr *wat_ident(String_View s)
+    {
+        return atom(concat("$"_sv, s));
+    }
+
+    String_View wat_name_of_type(Type type)
+    {
+        switch (type) {
+        case Type::I32:
+            return "i32"_sv;
+            break;
+        }
+        return {};
+    }
+
     S_Expr *compile_var_def(Var_Def var_def)
     {
-        return atom("<var_def>"_sv);
+        return list(atom("param"_sv),
+                    wat_ident(var_def.name),
+                    atom(wat_name_of_type(var_def.type)));
     }
 
     S_Expr *compile_args_list(Args_List *args_list)
     {
-        if (args_list) {
-            return compile_var_def(args_list->var_def);
+        S_Expr *result = nullptr;
+        S_Expr *last = nullptr;
+
+        while (args_list) {
+            S_Expr *node = cons(compile_var_def(args_list->var_def), nullptr);
+
+            if (result == nullptr) {
+                result = node;
+            } else {
+                assert(last);
+                assert(last->type == S_Expr_Type::Cons);
+                last->cons.tail = node;
+            }
+
+            last = node;
+
+            args_list = args_list->next;
         }
 
-        return nullptr;
+        return result;
     }
 
     S_Expr *compile_func_def(Func_Def func_def)
@@ -151,11 +189,13 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    // TODO: Can we use Linear_Memory for read the input file instead of relying on malloc called by read_file_as_string_view()
     const char *input_filepath = args.shift();
     auto input = unwrap_or_panic(
         read_file_as_string_view(input_filepath),
         "Could not read file `", input_filepath, "`: ", strerror(errno));
 
+    // TODO: Can we use Linear_Memory for collecting tokens instead of Dynamic_Array
     Dynamic_Array<Token> tokens = {};
     auto result = alexer(input, &tokens);
     if (result.failed) {

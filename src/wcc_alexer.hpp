@@ -39,6 +39,7 @@ struct Result
     const char *message;
 };
 
+// TODO: alexer does not support comments
 Result alexer(String_View input, Dynamic_Array<Token> *tokens);
 
 #endif  // WCC_ALEXER_HPP_
