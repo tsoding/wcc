@@ -103,6 +103,11 @@ struct Wat_Compiler
         return buffer.view();
     }
 
+    S_Expr *compile_var_def(Var_Def var_def)
+    {
+        return atom("<var_def>"_sv);
+    }
+
     S_Expr *compile_args_list(Args_List *args_list)
     {
         if (args_list) {
