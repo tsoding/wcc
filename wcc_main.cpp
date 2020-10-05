@@ -93,9 +93,32 @@ struct Wat_Compiler
         return cons(head, list(tail...));
     }
 
+    template <typename... Strings>
+    String_View concat(Strings... s)
+    {
+        String_Buffer buffer = {};
+        buffer.capacity = (s.count + ...) + 1;
+        buffer.data = memory.alloc<char>(buffer.capacity);
+        sprintln(&buffer, s...);
+        return buffer.view();
+    }
+
+    S_Expr *compile_args_list(Args_List *args_list)
+    {
+        if (args_list) {
+            return compile_var_def(args_list->var_def);
+        }
+
+        return nullptr;
+    }
+
     S_Expr *compile_func_def(Func_Def func_def)
     {
-        return list(atom("func"_sv), atom(func_def.name));
+        return list(
+            atom("func"_sv),
+            atom(concat("$"_sv, func_def.name)),
+            list(atom("export"_sv), atom(concat("\""_sv, func_def.name, "\""_sv))),
+            compile_args_list(func_def.args_list));
     }
 
     S_Expr *compile_module_to_wat(Module module)
