@@ -237,6 +237,23 @@ struct Wat_Compiler
         return list(atom("i32.const"_sv), atom("69"_sv));
     }
 
+    S_Expr *compile_statement(Statement statement)
+    {
+        return atom("<statement>"_sv);
+    }
+
+    S_Expr *compile_block(Block *block)
+    {
+        S_Expr *result = nullptr;
+
+        while (block) {
+            result = append(result, list(compile_statement(block->statement)));
+            block = block->next;
+
+        }
+        return result;
+    }
+
     S_Expr *compile_func_body(Block *block)
     {
         S_Expr *local_var_def_section = nullptr;
@@ -260,7 +277,7 @@ struct Wat_Compiler
             block = block->next;
         }
 
-        return append(local_var_def_section, local_var_def_init);
+        return append(local_var_def_section, local_var_def_init, compile_block(block));
     }
 
     S_Expr *compile_func_def(Func_Def func_def)
