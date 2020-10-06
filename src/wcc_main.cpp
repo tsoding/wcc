@@ -291,7 +291,7 @@ struct Wat_Compiler
             compile_func_body(func_def.body));
     }
 
-    S_Expr *compile_module_to_wat(Module module)
+    S_Expr *compile_module(Module module)
     {
         S_Expr *result = nullptr;
 
@@ -351,7 +351,7 @@ int main(int argc, char *argv[])
     Wat_Compiler wat_compiler = {};
     wat_compiler.memory = &memory;
     println(stdout, "Generated WAT:");
-    println(stdout, "    ", wat_compiler.compile_module_to_wat(module));
+    println(stdout, "    ", wat_compiler.compile_module(module));
 
     println(stdout, "Used memory: ", wat_compiler.memory->size, " bytes");
 
