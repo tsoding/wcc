@@ -344,8 +344,10 @@ Expression *Parser::parse_primary()
     switch (tokens.items->type) {
     case Token_Type::Number_Literal: {
         primary_expression->type = Expression_Type::Number_Literal;
-        Maybe<uint32_t> x = tokens.items->text.as_integer<uint32_t>();
-        assert(x.has_value);
+        auto x = tokens.items->text.as_integer<uint32_t>();
+        if (!x.has_value) {
+            fail("`", tokens.items->text, "` is not a number");
+        }
         primary_expression->number_literal.unwrap = x.unwrap;
         tokens.chop(1);
     } break;
