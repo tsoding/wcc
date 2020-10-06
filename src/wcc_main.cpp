@@ -79,6 +79,15 @@ struct Wat_Compiler
         return expr;
     }
 
+    S_Expr *atom(uint32_t number)
+    {
+        String_Buffer buffer = {};
+        buffer.capacity = 16;   // NOTE: 2^32 = 4294967296 so 16 chars should be more than enough
+        buffer.data = memory->alloc<char>(16);
+        sprint(&buffer, number);
+        return atom(buffer.view());
+    }
+
     S_Expr *cons(S_Expr *head, S_Expr *tail)
     {
         S_Expr *expr = memory->alloc<S_Expr>();
@@ -192,21 +201,66 @@ struct Wat_Compiler
         return list(atom("result"_sv), atom(wat_name_of_type(type)));
     }
 
+    S_Expr *compile_number_literal(Number_Literal number_literal)
+    {
+        return list(atom("i32.const"_sv), atom(number_literal.unwrap));
+    }
+
+    S_Expr *compile_variable(Variable variable)
+    {
+        return nullptr;
+    }
+
+    S_Expr *compile_plus(Plus plus)
+    {
+        return nullptr;
+    }
+
+    S_Expr *compile_greater(Greater greater)
+    {
+        return nullptr;
+    }
+
+    S_Expr *compile_expression(Expression *expression)
+    {
+        switch (expression->type) {
+        case Expression_Type::Number_Literal:
+            return compile_number_literal(expression->number_literal);
+        case Expression_Type::Variable:
+            return compile_variable(expression->variable);
+        case Expression_Type::Plus:
+            return compile_plus(expression->plus);
+        case Expression_Type::Greater:
+            return compile_greater(expression->greater);
+        }
+
+        return list(atom("i32.const"_sv), atom("69"_sv));
+    }
+
     S_Expr *compile_func_body(Block *block)
     {
         S_Expr *local_var_def_section = nullptr;
-        // S_Expr *local_var_def_init = nullptr;
+        S_Expr *local_var_def_init = nullptr;
 
         while (block && block->statement.type == Statement_Type::Local_Var_Def) {
+            auto var_ident = wat_ident(block->statement.local_var_def.def.name);
+
             local_var_def_section = append(
                 local_var_def_section,
                 list(list(atom("local"_sv),
-                          wat_ident(block->statement.local_var_def.def.name),
+                          var_ident,
                           atom(wat_name_of_type(block->statement.local_var_def.def.type)))));
+
+            local_var_def_init = append(
+                local_var_def_init,
+                list(list(atom("set_local"_sv),
+                          var_ident,
+                          compile_expression(block->statement.local_var_def.value))));
+
             block = block->next;
         }
 
-        return local_var_def_section;
+        return append(local_var_def_section, local_var_def_init);
     }
 
     S_Expr *compile_func_def(Func_Def func_def)
