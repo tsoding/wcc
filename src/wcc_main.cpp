@@ -155,11 +155,11 @@ struct Wat_Compiler
         return atom(concat("$"_sv, s));
     }
 
-    String_View wat_name_of_type(Type type)
+    S_Expr *wat_name_of_type(Type type)
     {
         switch (type) {
         case Type::I32:
-            return "i32"_sv;
+            return atom("i32"_sv);
             break;
         }
         return {};
@@ -169,7 +169,7 @@ struct Wat_Compiler
     {
         return list(atom("param"_sv),
                     wat_ident(var_def.name),
-                    atom(wat_name_of_type(var_def.type)));
+                    wat_name_of_type(var_def.type));
     }
 
     S_Expr *compile_args_list(Args_List *args_list)
@@ -198,7 +198,7 @@ struct Wat_Compiler
 
     S_Expr *compile_return_type(Type type)
     {
-        return list(atom("result"_sv), atom(wat_name_of_type(type)));
+        return list(atom("result"_sv), wat_name_of_type(type));
     }
 
     S_Expr *compile_number_literal(Number_Literal number_literal)
@@ -208,12 +208,12 @@ struct Wat_Compiler
 
     S_Expr *compile_variable(Variable variable)
     {
-        return nullptr;
+        return list(atom("get_local"_sv), wat_ident(variable.name));
     }
 
     S_Expr *compile_plus(Plus plus)
     {
-        return nullptr;
+        return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
     }
 
     S_Expr *compile_greater(Greater greater)
@@ -249,7 +249,7 @@ struct Wat_Compiler
                 local_var_def_section,
                 list(list(atom("local"_sv),
                           var_ident,
-                          atom(wat_name_of_type(block->statement.local_var_def.def.type)))));
+                          wat_name_of_type(block->statement.local_var_def.def.type))));
 
             local_var_def_init = append(
                 local_var_def_init,
