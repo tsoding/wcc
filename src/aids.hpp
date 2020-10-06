@@ -21,7 +21,7 @@
 //
 // ============================================================
 //
-// aids — 0.19.0 — std replacement for C++. Designed to aid developers
+// aids — 0.21.0 — std replacement for C++. Designed to aid developers
 // to a better programming experience.
 //
 // https://github.com/rexim/aids
@@ -30,6 +30,8 @@
 //
 // ChangeLog (https://semver.org/ is implied)
 //
+//   0.21.0 void sprint1(String_Buffer *buffer, unsigned int x)
+//   0.20.0 Escape
 //   0.19.0 unwrap_or_panic()
 //   0.18.0 Rename Args::pop() -> Args::shift()
 //          Add more details to Stretchy_Buffer deprecation message
@@ -614,6 +616,15 @@ namespace aids
         buffer->size = min(buffer->size + n, buffer->capacity - 1);
     }
 
+    void sprint1(String_Buffer *buffer, unsigned int x)
+    {
+        int n = snprintf(
+            buffer->data + buffer->size,
+            buffer->capacity - buffer->size,
+            "%u", x);
+        buffer->size = min(buffer->size + n, buffer->capacity - 1);
+    }
+
     void sprint1(String_Buffer *buffer, long unsigned int x)
     {
         int n = snprintf(
@@ -698,6 +709,11 @@ namespace aids
     {
         sprint1(buffer, another_buffer.view());
     }
+
+    struct Escape
+    {
+        String_View unwrap;
+    };
 
     ////////////////////////////////////////////////////////////
     // PRINT
@@ -785,6 +801,22 @@ namespace aids
         }
 
         return maybe.unwrap;
+    }
+
+    void print1(FILE *stream, Escape escape)
+    {
+        for (size_t i = 0; i < escape.unwrap.count; ++i) {
+            switch (escape.unwrap.data[i]) {
+            case '\a': print(stream, "\\a"); break;
+            case '\b': print(stream, "\\b"); break;
+            case '\f': print(stream, "\\f"); break;
+            case '\n': print(stream, "\\n"); break;
+            case '\r': print(stream, "\\r"); break;
+            case '\t': print(stream, "\\t"); break;
+            case '\v': print(stream, "\\v"); break;
+            default: print(stream, escape.unwrap.data[i]);
+            }
+        }
     }
 
     void print1(FILE *stream, Pad pad)
