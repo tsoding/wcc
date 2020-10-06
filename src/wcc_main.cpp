@@ -218,7 +218,7 @@ struct Wat_Compiler
 
     S_Expr *compile_greater(Greater greater)
     {
-        return nullptr;
+        return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
     }
 
     S_Expr *compile_expression(Expression *expression)
