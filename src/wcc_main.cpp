@@ -187,13 +187,19 @@ struct Wat_Compiler
         return result;
     }
 
+    S_Expr *compile_return_type(Type type)
+    {
+        return list(atom("result"_sv), atom(wat_name_of_type(type)));
+    }
+
     S_Expr *compile_func_def(Func_Def func_def)
     {
         return append(
             list(atom("func"_sv),
                  atom(concat("$"_sv, func_def.name)),
                  list(atom("export"_sv), atom(concat("\""_sv, func_def.name, "\""_sv)))),
-            compile_args_list(func_def.args_list));
+            compile_args_list(func_def.args_list),
+            list(compile_return_type(func_def.return_type)));
     }
 
     S_Expr *compile_module_to_wat(Module module)
