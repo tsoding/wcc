@@ -192,6 +192,23 @@ struct Wat_Compiler
         return list(atom("result"_sv), atom(wat_name_of_type(type)));
     }
 
+    S_Expr *compile_func_body(Block *block)
+    {
+        S_Expr *local_var_def_section = nullptr;
+        // S_Expr *local_var_def_init = nullptr;
+
+        while (block && block->statement.type == Statement_Type::Local_Var_Def) {
+            local_var_def_section = append(
+                local_var_def_section,
+                list(list(atom("local"_sv),
+                          wat_ident(block->statement.local_var_def.def.name),
+                          atom(wat_name_of_type(block->statement.local_var_def.def.type)))));
+            block = block->next;
+        }
+
+        return local_var_def_section;
+    }
+
     S_Expr *compile_func_def(Func_Def func_def)
     {
         return append(
@@ -199,7 +216,8 @@ struct Wat_Compiler
                  atom(concat("$"_sv, func_def.name)),
                  list(atom("export"_sv), atom(concat("\""_sv, func_def.name, "\""_sv)))),
             compile_args_list(func_def.args_list),
-            list(compile_return_type(func_def.return_type)));
+            list(compile_return_type(func_def.return_type)),
+            compile_func_body(func_def.body));
     }
 
     S_Expr *compile_module_to_wat(Module module)
