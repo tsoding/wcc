@@ -99,6 +99,38 @@ struct Wat_Compiler
         return cons(head, list(tail...));
     }
 
+    S_Expr *append()
+    {
+        return nullptr;
+    }
+
+    template <typename... Rest>
+    S_Expr *append(S_Expr *list1, Rest... rest)
+    {
+        S_Expr *list2 = append(rest...);
+
+        if (list1 == nullptr) {
+            return list2;
+        }
+
+        S_Expr *last = list1;
+
+        while (last != nullptr &&
+               last->type == S_Expr_Type::Cons &&
+               last->cons.tail != nullptr)
+        {
+            last = last->cons.tail;
+        }
+
+        assert(last);
+        assert(last->type == S_Expr_Type::Cons);
+        assert(last->cons.tail == nullptr);
+
+        last->cons.tail = list2;
+
+        return list1;
+    }
+
     template <typename... Strings>
     String_View concat(Strings... s)
     {
@@ -157,10 +189,10 @@ struct Wat_Compiler
 
     S_Expr *compile_func_def(Func_Def func_def)
     {
-        return list(
-            atom("func"_sv),
-            atom(concat("$"_sv, func_def.name)),
-            list(atom("export"_sv), atom(concat("\""_sv, func_def.name, "\""_sv))),
+        return append(
+            list(atom("func"_sv),
+                 atom(concat("$"_sv, func_def.name)),
+                 list(atom("export"_sv), atom(concat("\""_sv, func_def.name, "\""_sv)))),
             compile_args_list(func_def.args_list));
     }
 
@@ -170,7 +202,7 @@ struct Wat_Compiler
 
         Top_Level_Def *top_level_def = module.top_level_defs;
         while (top_level_def) {
-            result = cons(compile_func_def(top_level_def->func_def), result);
+            result = append(result, list(compile_func_def(top_level_def->func_def)));
             top_level_def = top_level_def->next;
         }
 
