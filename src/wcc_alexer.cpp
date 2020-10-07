@@ -49,12 +49,22 @@ String_View chop_off(String_View *s, size_t n)
     return result;
 }
 
+bool is_symbol_start(char x)
+{
+    return isalpha(x) || x == '_';
+}
+
+bool is_symbol(char x)
+{
+    return isalnum(x) || x == '_';
+}
+
 void Alexer::tokenize()
 {
     auto source = input.trim_begin();
     while (source.count > 0) {
-        if (isalpha(*source.data)) {
-            String_View token_text = chop_while(&source, isalnum);
+        if (is_symbol_start(*source.data)) {
+            String_View token_text = chop_while(&source, is_symbol);
 
             if (token_text == "while"_sv) {
                 tokens.push(Token {Token_Type::While, token_text});
