@@ -1,0 +1,11 @@
+// TODO: rot13_str.wc sample is not compilable
+
+import * from rot13_char;
+
+func rot13_str(s: Ptr[u8], n: u32) {
+     while (n > 0) {
+         store(s, rot13_char(read(s)));
+         s += 1;
+         n -= 1;
+     }
+}
