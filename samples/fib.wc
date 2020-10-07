@@ -10,7 +10,3 @@ func fib(n: i32, m: i32): i32 {
     }
     a;
 }
-
-func add(a: i32, b: i32): i32 {
-     a + b;
-}
