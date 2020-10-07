@@ -114,14 +114,14 @@ S_Expr *Wat_Compiler::compile_greater(Greater greater)
 
 S_Expr *Wat_Compiler::compile_expression(Expression *expression)
 {
-    switch (expression->type) {
-    case Expression_Type::Number_Literal:
+    switch (expression->kind) {
+    case Expression_Kind::Number_Literal:
         return compile_number_literal(expression->number_literal);
-    case Expression_Type::Variable:
+    case Expression_Kind::Variable:
         return compile_variable(expression->variable);
-    case Expression_Type::Plus:
+    case Expression_Kind::Plus:
         return compile_plus(expression->plus);
-    case Expression_Type::Greater:
+    case Expression_Kind::Greater:
         return compile_greater(expression->greater);
     }
 

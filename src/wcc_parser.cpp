@@ -18,17 +18,17 @@ void print1(FILE *stream, Module module)
 
 void print1(FILE *stream, Expression expression)
 {
-    switch (expression.type) {
-    case Expression_Type::Number_Literal:
+    switch (expression.kind) {
+    case Expression_Kind::Number_Literal:
         print(stream, expression.number_literal.unwrap);
         break;
-    case Expression_Type::Variable:
+    case Expression_Kind::Variable:
         print(stream, expression.variable.name);
         break;
-    case Expression_Type::Plus:
+    case Expression_Kind::Plus:
         print(stream, "(+ ", *expression.plus.lhs, " ", *expression.plus.rhs, ")");
         break;
-    case Expression_Type::Greater:
+    case Expression_Kind::Greater:
         print(stream, "(> ", *expression.greater.lhs, " ", *expression.greater.rhs, ")");
         break;
     }
@@ -353,7 +353,7 @@ Expression *Parser::parse_primary()
 
     switch (tokens.items->type) {
     case Token_Type::Number_Literal: {
-        primary_expression->type = Expression_Type::Number_Literal;
+        primary_expression->kind = Expression_Kind::Number_Literal;
         auto x = tokens.items->text.as_integer<uint32_t>();
         if (!x.has_value) {
             fail("`", tokens.items->text, "` is not a number");
@@ -363,7 +363,7 @@ Expression *Parser::parse_primary()
     } break;
 
     case Token_Type::Symbol: {
-        primary_expression->type = Expression_Type::Variable;
+        primary_expression->kind = Expression_Kind::Variable;
         primary_expression->variable.name = tokens.items->text;
         tokens.chop(1);
     } break;
@@ -396,7 +396,7 @@ Expression *Parser::parse_plus_expression()
     Expression *rhs = parse_primary();
 
     Expression *plus_expression = memory->alloc<Expression>();
-    plus_expression->type = Expression_Type::Plus;
+    plus_expression->kind = Expression_Kind::Plus;
     plus_expression->plus.lhs = lhs;
     plus_expression->plus.rhs = rhs;
 
@@ -417,7 +417,7 @@ Expression *Parser::parse_greater_expression()
     Expression *rhs = parse_plus_expression();
 
     Expression *greater_expression = memory->alloc<Expression>();
-    greater_expression->type = Expression_Type::Greater;
+    greater_expression->kind = Expression_Kind::Greater;
     greater_expression->greater.lhs = lhs;
     greater_expression->greater.rhs = rhs;
 

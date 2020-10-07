@@ -26,7 +26,7 @@ enum class Statement_Kind
     Expression,
 };
 
-enum class Expression_Type
+enum class Expression_Kind
 {
     Number_Literal,
     Variable,
@@ -60,7 +60,7 @@ struct Greater
 
 struct Expression
 {
-    Expression_Type type;
+    Expression_Kind kind;
     union
     {
         Number_Literal number_literal;
