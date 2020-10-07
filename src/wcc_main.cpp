@@ -73,7 +73,8 @@ int main(int argc, char *argv[])
     Dynamic_Array<Token> tokens = {};
     auto result = alexer(input, &tokens);
     if (result.failed) {
-        println(stderr, "Alexer failed at ", input_filepath, ":", result.position, ": ", result.message);
+        // TODO: tokenizer errors not positioned line wise
+        println(stderr, input_filepath, ":", result.position, ": ", result.message);
         exit(1);
     }
 
