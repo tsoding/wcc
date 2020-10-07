@@ -1,16 +1,65 @@
+// TODO: generating wasm directly is not supported
+enum class Target
+{
+    Wat,
+    Ast,
+    Tokens,
+};
+
+Maybe<Target> target_by_name(String_View name)
+{
+    if (name == "wat"_sv)    return {true, Target::Wat};
+    if (name == "ast"_sv)    return {true, Target::Ast};
+    if (name == "tokens"_sv) return {true, Target::Tokens};
+    return {};
+}
+
 void usage(FILE *stream)
 {
-    println(stream, "Usage: ./wcc <input.wc>");
+    println(stream, "Usage: ./wcc [--target|-t <target>] <input.wc>");
+    println(stream, "    --target|-t <target>     Generate code for a specific target.");
+    println(stream, "                             Available targets: wat, ast, tokens.");
+    println(stream, "                             Default target: wat.");
+    // TODO: --help flag is not supported
+    // TODO: output to a specific file is not supported (flag -o)
 }
 
 int main(int argc, char *argv[])
 {
+    auto target = Target::Wat;
+
     Args args = {argc, argv};
     args.shift();
 
+    while (args.argc > 1) {
+        String_View flag = cstr_as_string_view(args.shift());
+
+        if (flag == "--target"_sv || flag == "-t"_sv) {
+            if (args.empty()) {
+                usage(stderr);
+                println(stderr, "ERROR: No value provided for flag `", flag, "`");
+                exit(1);
+            }
+
+            auto custom_target_name = cstr_as_string_view(args.shift());
+            auto custom_target = target_by_name(custom_target_name);
+            if (!custom_target.has_value) {
+                usage(stderr);
+                println(stderr, "ERROR: Unknown target `", custom_target_name, "`");
+                exit(1);
+            }
+
+            target = custom_target.unwrap;
+        } else {
+            usage(stderr);
+            println(stderr, "ERROR: Unknown flag `", flag, "`");
+            exit(1);
+        }
+    }
+
     if (args.empty()) {
-        println(stderr, "ERROR: No input file provided");
         usage(stderr);
+        println(stderr, "ERROR: No input file provided");
         exit(1);
     }
 
@@ -39,21 +88,29 @@ int main(int argc, char *argv[])
     parser.filename = cstr_as_string_view(input_filepath);
 
     Module module = parser.parse_module();
-    println(stdout, "Parsed code:");
-    println(stdout, "    ", module);
 
-    if (parser.tokens.count > 0) {
-        parser.fail("The tokens were not fully parsed");
-    }
+    assert(parser.tokens.count == 0 && "The tokens were not fully parsed");
 
     Wat_Compiler wat_compiler = {};
     wat_compiler.memory = &memory;
     wat_compiler.input = input;
     wat_compiler.filename = cstr_as_string_view(input_filepath);
-    println(stdout, "Generated WAT:");
-    println(stdout, "    ", wat_compiler.compile_module(module));
 
-    println(stdout, "Used memory: ", wat_compiler.memory->size, " bytes");
+    S_Expr *wat = wat_compiler.compile_module(module);
+
+    switch (target) {
+    case Target::Wat:
+        println(stdout, wat);
+        break;
+    case Target::Ast:
+        println(stdout, module);
+        break;
+    case Target::Tokens:
+        for (size_t i = 0; i < tokens.size; ++i) {
+            println(stdout, tokens.data[i].type, " -> \"", Escape { tokens.data[i].text }, "\"");
+        }
+        break;
+    }
 
     return 0;
 }
