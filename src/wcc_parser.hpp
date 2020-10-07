@@ -17,7 +17,7 @@ struct Var_Def
     Type type;
 };
 
-enum class Statement_Type
+enum class Statement_Kind
 {
     Local_Var_Def,
     While,
@@ -98,7 +98,7 @@ struct Subtract_Assignment
 
 struct Statement
 {
-    Statement_Type type;
+    Statement_Kind kind;
     size_t offset;
     union
     {

@@ -131,11 +131,11 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
 
 S_Expr *Wat_Compiler::compile_statement(Statement statement)
 {
-    switch (statement.type) {
-    case Statement_Type::Local_Var_Def:
+    switch (statement.kind) {
+    case Statement_Kind::Local_Var_Def:
         fail(statement.offset, "TODO: Local variable definitions are only allowed at the beginning of the function");
         break;
-    case Statement_Type::While:
+    case Statement_Kind::While:
         // (block
         //  (loop
         //   (br_if 1 (i32.eqz <condition>))
@@ -149,11 +149,11 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
                           list(atom("i32.eqz"_sv), compile_expression(statement.hwile.condition)))),
                 compile_block(statement.hwile.body),
                 list(list(atom("br"_sv), atom(0)))));
-    case Statement_Type::Assignment:
+    case Statement_Kind::Assignment:
         return list(atom("set_local"_sv),
                     wat_ident(statement.assignment.var_name),
                     compile_expression(statement.assignment.value));
-    case Statement_Type::Subtract_Assignment: {
+    case Statement_Kind::Subtract_Assignment: {
         // TODO: can we get rid of Subtract_Assignment and simply desugar it during the parsing?
         auto var_ident = wat_ident(statement.subtract_assignment.var_name);
         return list(atom("set_local"_sv),
@@ -162,7 +162,7 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
                          list(atom("get_local"_sv), var_ident),
                          compile_expression(statement.subtract_assignment.value)));
     }
-    case Statement_Type::Expression:
+    case Statement_Kind::Expression:
         return compile_expression(statement.expression);
     }
 
@@ -186,7 +186,7 @@ S_Expr *Wat_Compiler::compile_func_body(Block *block)
     S_Expr *local_var_def_section = nullptr;
     S_Expr *local_var_def_init = nullptr;
 
-    while (block && block->statement.type == Statement_Type::Local_Var_Def) {
+    while (block && block->statement.kind == Statement_Kind::Local_Var_Def) {
         auto var_ident = wat_ident(block->statement.local_var_def.def.name);
 
         local_var_def_section = append(

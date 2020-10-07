@@ -36,20 +36,20 @@ void print1(FILE *stream, Expression expression)
 
 void print1(FILE *stream, Statement statement)
 {
-    switch (statement.type) {
-    case Statement_Type::While:
+    switch (statement.kind) {
+    case Statement_Kind::While:
         print(stream, "(while ", *statement.hwile.condition, " ", statement.hwile.body, ")");
         break;
-    case Statement_Type::Local_Var_Def:
+    case Statement_Kind::Local_Var_Def:
         print(stream, "(local ", statement.local_var_def.def, " ", *statement.local_var_def.value, ")");
         break;
-    case Statement_Type::Assignment:
+    case Statement_Kind::Assignment:
         print(stream, "(= ", statement.assignment.var_name, " ", *statement.assignment.value, ")");
         break;
-    case Statement_Type::Subtract_Assignment:
+    case Statement_Kind::Subtract_Assignment:
         print(stream, "(-= ", statement.subtract_assignment.var_name, " ", *statement.subtract_assignment.value, ")");
         break;
-    case Statement_Type::Expression:
+    case Statement_Kind::Expression:
         print(stream, *statement.expression);
         break;
     }
@@ -246,33 +246,33 @@ Statement Parser::parse_statement()
 
     switch (tokens.items->type) {
     case Token_Type::While:
-        result.type = Statement_Type::While;
+        result.kind = Statement_Kind::While;
         result.hwile = parse_while();
         break;
     case Token_Type::Local:
-        result.type = Statement_Type::Local_Var_Def;
+        result.kind = Statement_Kind::Local_Var_Def;
         result.local_var_def = parse_local_var_def();
         break;
     case Token_Type::Symbol:
         assert(tokens.count > 1);
         switch (tokens.items[1].type) {
         case Token_Type::Equals:
-            result.type = Statement_Type::Assignment;
+            result.kind = Statement_Kind::Assignment;
             result.assignment = parse_assignment();
             break;
         case Token_Type::Minus_Equals:
-            result.type = Statement_Type::Subtract_Assignment;
+            result.kind = Statement_Kind::Subtract_Assignment;
             result.subtract_assignment = parse_subtract_assignment();
             break;
         default:
-            result.type = Statement_Type::Expression;
+            result.kind = Statement_Kind::Expression;
             result.expression = parse_expression();
             expect_token_type(Token_Type::Semicolon);
             tokens.chop(1);
         }
         break;
     default:
-        result.type = Statement_Type::Expression;
+        result.kind = Statement_Kind::Expression;
         result.expression = parse_expression();
         expect_token_type(Token_Type::Semicolon);
         tokens.chop(1);
