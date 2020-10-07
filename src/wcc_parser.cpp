@@ -68,8 +68,8 @@ void print1(FILE *stream, Block *block)
 void print1(FILE *stream, Type type)
 {
     switch (type) {
-    case Type::I32:
-        print(stream, "Type::I32");
+    case Type::U32:
+        print(stream, "Type::U32");
         break;
     }
 }
@@ -148,11 +148,11 @@ Type Parser::parse_type_annotation()
     expect_token_type(Token_Type::Symbol);
     auto type_name = tokens.items->text;
 
-    if (type_name != "i32"_sv) {
+    if (type_name != "u32"_sv) {
         fail("Unknown type `", type_name, "`");
     }
     tokens.chop(1);
-    return Type::I32;
+    return Type::U32;
 }
 
 While Parser::parse_while()

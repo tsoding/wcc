@@ -6,7 +6,7 @@
 
 enum class Type
 {
-    I32
+    U32,
 };
 
 struct Var_Def
