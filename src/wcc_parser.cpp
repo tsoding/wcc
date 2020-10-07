@@ -49,9 +49,6 @@ void print1(FILE *stream, Statement statement)
     case Statement_Type::Subtract_Assignment:
         print(stream, "(-= ", statement.subtract_assignment.var_name, " ", *statement.subtract_assignment.value, ")");
         break;
-    case Statement_Type::None:
-        print(stream, "None");
-        break;
     case Statement_Type::Expression:
         print(stream, *statement.expression);
         break;

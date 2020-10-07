@@ -17,7 +17,6 @@ struct Var_Def
 
 enum class Statement_Type
 {
-    None,
     Local_Var_Def,
     While,
     Assignment,
