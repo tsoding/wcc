@@ -1,8 +1,9 @@
 func fib(n: i32, m: i32): i32 {
     local a: i32 = 0;
     local b: i32 = 1;
-    local c: i32 = a + b;
+    local c: i32 = 0;
     while (n > 0) {
+        c = a + b;
         a = b;
         b = c;
         n -= 1;
