@@ -1,4 +1,4 @@
-func fib(n: u32, m: u32): u32 {
+func fib(n: u32): u32 {
     local a: u32 = 0;
     local b: u32 = 1;
     local c: u32 = 0;
