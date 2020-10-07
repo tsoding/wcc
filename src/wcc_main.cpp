@@ -259,11 +259,47 @@ struct Wat_Compiler
             return compile_greater(expression->greater);
         }
 
-        return list(atom("i32.const"_sv), atom("69"_sv));
+        assert(0 && "Unknown type of expression");
+        return nullptr;
     }
 
     S_Expr *compile_statement(Statement statement)
     {
+        switch (statement.type) {
+        case Statement_Type::Local_Var_Def:
+            fail(statement.offset, "TODO: Local variable definitions are only allowed at the beginning of the function");
+            break;
+        case Statement_Type::While:
+            // (block
+            //  (loop
+            //   (br_if 1 (i32.eqz <condition>))
+            //   <body>
+            //   (br 0)))
+            return list(
+                atom("block"_sv),
+                append(
+                    list(atom("loop"_sv),
+                         list(atom("br_if"_sv), atom(1),
+                              list(atom("i32.eqz"_sv), compile_expression(statement.hwile.condition)))),
+                    compile_block(statement.hwile.body),
+                    list(list(atom("br"_sv), atom(0)))));
+        case Statement_Type::Assignment:
+            return list(atom("set_local"_sv),
+                        wat_ident(statement.assignment.var_name),
+                        compile_expression(statement.assignment.value));
+        case Statement_Type::Subtract_Assignment: {
+            // TODO: can we get rid of Subtract_Assignment and simply desugar it during the parsing?
+            auto var_ident = wat_ident(statement.subtract_assignment.var_name);
+            return list(atom("set_local"_sv),
+                        var_ident,
+                        list(atom("i32.sub"_sv),
+                             list(atom("get_local"_sv), var_ident),
+                             compile_expression(statement.subtract_assignment.value)));
+        }
+        case Statement_Type::Expression:
+            return compile_expression(statement.expression);
+        }
+
         return atom("<statement>"_sv);
     }
 
