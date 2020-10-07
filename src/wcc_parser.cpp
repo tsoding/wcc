@@ -71,6 +71,9 @@ void print1(FILE *stream, Type type)
     case Type::U32:
         print(stream, "Type::U32");
         break;
+    case Type::U64:
+        print(stream, "Type::U64");
+        break;
     }
 }
 
@@ -148,11 +151,16 @@ Type Parser::parse_type_annotation()
     expect_token_type(Token_Type::Symbol);
     auto type_name = tokens.items->text;
 
-    if (type_name != "u32"_sv) {
+    if (type_name == "u32"_sv) {
+        tokens.chop(1);
+        return Type::U32;
+    } else if (type_name == "u64"_sv) {
+        tokens.chop(1);
+        return Type::U64;
+    } else {
         fail("Unknown type `", type_name, "`");
+        return Type::U32;
     }
-    tokens.chop(1);
-    return Type::U32;
 }
 
 While Parser::parse_while()
