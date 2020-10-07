@@ -41,6 +41,10 @@ S_Expr *Wat_Compiler::wat_ident(String_View s)
 S_Expr *Wat_Compiler::wat_name_of_type(Type type)
 {
     switch (type) {
+    case Type::Unchecked:
+        assert(0 && "Something went horribly wrong. Such value should never reach here.");
+        break;
+
     case Type::U32:
         return atom("i32"_sv);
         break;

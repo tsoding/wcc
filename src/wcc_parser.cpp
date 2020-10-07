@@ -68,6 +68,10 @@ void print1(FILE *stream, Block *block)
 void print1(FILE *stream, Type type)
 {
     switch (type) {
+    case Type::Unchecked:
+        print(stream, "Type::Unchecked");
+        break;
+
     case Type::U32:
         print(stream, "Type::U32");
         break;
@@ -159,7 +163,7 @@ Type Parser::parse_type_annotation()
         return Type::U64;
     } else {
         fail("Unknown type `", type_name, "`");
-        return Type::U32;
+        return Type::Unchecked;
     }
 }
 
