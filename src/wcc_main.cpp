@@ -70,13 +70,10 @@ int main(int argc, char *argv[])
         "Could not read file `", input_filepath, "`: ", strerror(errno));
 
     // TODO: Can we use Linear_Memory for collecting tokens instead of Dynamic_Array
-    Dynamic_Array<Token> tokens = {};
-    auto result = alexer(input, &tokens);
-    if (result.failed) {
-        // TODO: tokenizer errors not positioned line wise
-        println(stderr, input_filepath, ":", result.position, ": ", result.message);
-        exit(1);
-    }
+    Alexer alexer = {};
+    alexer.input = input;
+    alexer.filename = cstr_as_string_view(input_filepath);
+    alexer.tokenize();
 
     Linear_Memory memory = {};
     memory.capacity = 1024 * 1024 * 1024;
@@ -84,7 +81,7 @@ int main(int argc, char *argv[])
 
     Parser parser = {};
     parser.memory = &memory;
-    parser.tokens = {tokens.size, tokens.data};
+    parser.tokens = {alexer.tokens.size, alexer.tokens.data};
     parser.input = input;
     parser.filename = cstr_as_string_view(input_filepath);
 
@@ -107,9 +104,7 @@ int main(int argc, char *argv[])
         println(stdout, module);
         break;
     case Target::Tokens:
-        for (size_t i = 0; i < tokens.size; ++i) {
-            println(stdout, tokens.data[i].type, " -> \"", Escape { tokens.data[i].text }, "\"");
-        }
+        alexer.dump_tokens();
         break;
     }
 
