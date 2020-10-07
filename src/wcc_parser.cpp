@@ -227,10 +227,11 @@ Subtract_Assignment Parser::parse_subtract_assignment()
 
 Statement Parser::parse_statement()
 {
-
     Statement result = {};
 
     assert(tokens.count > 0);
+    result.offset = tokens.items->text.data - input.data;
+
     switch (tokens.items->type) {
     case Token_Type::While:
         result.type = Statement_Type::While;

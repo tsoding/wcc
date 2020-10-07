@@ -97,6 +97,7 @@ struct Subtract_Assignment
 struct Statement
 {
     Statement_Type type;
+    size_t offset;
     union
     {
         Local_Var_Def local_var_def;
