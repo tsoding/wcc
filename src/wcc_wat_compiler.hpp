@@ -46,7 +46,7 @@ struct Wat_Compiler
             String_View line = input0.chop_by_delim('\n');
 
             if (offset <= line.count) {
-                println(stderr, filename, ":", line_number, ":", offset, ": ", args...);
+                println(stderr, filename, ":", line_number, ":", offset + 1, ": ", args...);
                 break;
             }
 
