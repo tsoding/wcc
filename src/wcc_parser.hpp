@@ -61,6 +61,7 @@ struct Greater
 struct Expression
 {
     Expression_Kind kind;
+    Type type;
     union
     {
         Number_Literal number_literal;
@@ -128,6 +129,7 @@ struct Func_Def
     Args_List *args_list;
     Type return_type;
     Block *body;
+    size_t offset;
 };
 
 struct Top_Level_Def
@@ -212,6 +214,12 @@ struct Parser
     View<Token> tokens;
     String_View input;
     String_View filename;
+
+    size_t current_offset() const
+    {
+        assert(tokens.count > 0);
+        return tokens.items->text.data - input.data;
+    }
 
     template <typename... Args>
     void inform(Args... args)

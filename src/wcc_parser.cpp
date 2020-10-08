@@ -18,6 +18,7 @@ void print1(FILE *stream, Module module)
 
 void print1(FILE *stream, Expression expression)
 {
+    print(stream, "(");
     switch (expression.kind) {
     case Expression_Kind::Number_Literal:
         print(stream, expression.number_literal.unwrap);
@@ -32,6 +33,7 @@ void print1(FILE *stream, Expression expression)
         print(stream, "(> ", *expression.greater.lhs, " ", *expression.greater.rhs, ")");
         break;
     }
+    print(stream, " ", expression.type, ")");
 }
 
 void print1(FILE *stream, Statement statement)
@@ -242,7 +244,7 @@ Statement Parser::parse_statement()
     Statement result = {};
 
     assert(tokens.count > 0);
-    result.offset = tokens.items->text.data - input.data;
+    result.offset = current_offset();
 
     switch (tokens.items->type) {
     case Token_Type::While:
@@ -316,6 +318,7 @@ Func_Def Parser::parse_func_def()
 
     expect_token_type(Token_Type::Symbol);
     func_def.name = tokens.items->text;
+    func_def.offset = current_offset();
     tokens.chop(1);
 
     func_def.args_list = parse_args_list();

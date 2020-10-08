@@ -89,6 +89,13 @@ int main(int argc, char *argv[])
 
     assert(parser.tokens.count == 0 && "The tokens were not fully parsed");
 
+    Type_Checker type_checker = {};
+    type_checker.memory = &memory;
+    type_checker.input = input;
+    type_checker.filename = cstr_as_string_view(input_filepath);
+
+    type_checker.check_types_of_module(&module);
+
     Wat_Compiler wat_compiler = {};
     wat_compiler.memory = &memory;
     wat_compiler.input = input;
