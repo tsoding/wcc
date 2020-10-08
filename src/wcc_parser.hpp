@@ -212,50 +212,12 @@ struct Parser
 {
     Linear_Memory *memory;
     View<Token> tokens;
-    String_View input;
-    String_View filename;
+    Reporter reporter;
 
     size_t current_offset() const
     {
         assert(tokens.count > 0);
-        return tokens.items->text.data - input.data;
-    }
-
-    template <typename... Args>
-    void inform(Args... args)
-    {
-        assert(tokens.count > 0);
-        Token place = *tokens.items;
-
-        size_t offset = place.text.data - input.data;
-
-        String_View input0 = input;
-        for (size_t line_number = 1; input0.count > 0; ++line_number) {
-            String_View line = input0.chop_by_delim('\n');
-
-            if (offset <= line.count) {
-                println(stderr, filename, ":", line_number, ":", offset + 1, ": ", args...);
-                break;
-            }
-
-            offset -= line.count + 1;
-        }
-    }
-
-    template <typename... Args>
-    void warn(Args... args)
-    {
-        inform("warning: ", args...);
-    }
-
-    template <typename... Args>
-    void fail(Args... args)
-    {
-        inform("error: ", args...);
-
-        println(stdout, "Unparsed tokens: ");
-        dump_tokens();
-        exit(1);
+        return reporter.offset_from_input(tokens.items->text.data);
     }
 
     void dump_tokens()
@@ -269,7 +231,7 @@ struct Parser
     {
         assert(tokens.count > 0);
         if (expected_type != tokens.items->type) {
-            fail("Expected ", expected_type, " but got `", Escape { tokens.items->text }, "`");
+            reporter.fail(current_offset(), "Expected ", expected_type, " but got `", Escape { tokens.items->text }, "`");
         }
     }
 

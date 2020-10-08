@@ -35,31 +35,7 @@ void print1(FILE *stream, S_Expr *expr);
 struct Wat_Compiler
 {
     Linear_Memory *memory;
-    String_View input;
-    String_View filename;
-
-    template <typename... Args>
-    void inform(size_t offset, Args... args)
-    {
-        String_View input0 = input;
-        for (size_t line_number = 1; input0.count > 0; ++line_number) {
-            String_View line = input0.chop_by_delim('\n');
-
-            if (offset <= line.count) {
-                println(stderr, filename, ":", line_number, ":", offset + 1, ": ", args...);
-                break;
-            }
-
-            offset -= line.count + 1;
-        }
-    }
-
-    template <typename... Args>
-    void fail(size_t offset, Args... args)
-    {
-        inform(offset, "error: ", args...);
-        exit(1);
-    }
+    Reporter reporter;
 
     S_Expr *atom(String_View name)
     {

@@ -1,6 +1,8 @@
 #ifndef WCC_ALEXER_HPP_
 #define WCC_ALEXER_HPP_
 
+#include "./wcc_reporter.hpp"
+
 enum class Token_Type
 {
     Func,
@@ -44,33 +46,10 @@ struct Result
 struct Alexer
 {
     String_View input;
-    String_View filename;
     Dynamic_Array<Token> tokens;
+    Reporter reporter;
 
-    template <typename... Args>
-    void inform(size_t offset, Args... args)
-    {
-        String_View input0 = input;
-        for (size_t line_number = 1; input0.count > 0; ++line_number) {
-            String_View line = input0.chop_by_delim('\n');
-
-            if (offset <= line.count) {
-                println(stderr, filename, ":", line_number, ":", offset + 1, ": ", args...);
-                break;
-            }
-
-            offset -= line.count + 1;
-        }
-    }
-
-    template <typename... Args>
-    void fail(size_t offset, Args... args)
-    {
-        inform(offset, "error: ", args...);
-        exit(1);
-    }
-
-    void dump_tokens();
+    void dump_tokens() const;
     void tokenize();
 };
 

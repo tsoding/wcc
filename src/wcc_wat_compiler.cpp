@@ -133,7 +133,7 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
 {
     switch (statement.kind) {
     case Statement_Kind::Local_Var_Def:
-        fail(statement.offset, "TODO: Local variable definitions are only allowed at the beginning of the function");
+        reporter.fail(statement.offset, "TODO: Local variable definitions are only allowed at the beginning of the function");
         break;
     case Statement_Kind::While:
         // (block

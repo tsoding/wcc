@@ -120,7 +120,7 @@ void Alexer::tokenize()
 
             default: {
                 assert(input.data <= source.data);
-                fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
+                reporter.fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
             }
             }
         }
@@ -128,7 +128,7 @@ void Alexer::tokenize()
     }
 }
 
-void Alexer::dump_tokens()
+void Alexer::dump_tokens() const
 {
     for (size_t i = 0; i < tokens.size; ++i) {
         println(stdout, "  ", tokens.data[i].type, " -> \"", Escape { tokens.data[i].text }, "\"");

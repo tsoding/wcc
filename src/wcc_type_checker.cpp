@@ -2,8 +2,8 @@
 
 void Type_Checker::check_types_of_func_def(Func_Def *func_def)
 {
-    warn(func_def->offset,
-         "TODO: Type_Checker::check_types_of_func_def() is not implemented");
+    reporter.warn(func_def->offset,
+                  "TODO: Type_Checker::check_types_of_func_def() is not implemented");
 }
 
 void Type_Checker::check_types_of_module(Module *module)

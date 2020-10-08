@@ -69,37 +69,35 @@ int main(int argc, char *argv[])
         read_file_as_string_view(input_filepath),
         "Could not read file `", input_filepath, "`: ", strerror(errno));
 
-    // TODO: Can we use Linear_Memory for collecting tokens instead of Dynamic_Array
-    Alexer alexer = {};
-    alexer.input = input;
-    alexer.filename = cstr_as_string_view(input_filepath);
-    alexer.tokenize();
-
     Linear_Memory memory = {};
     memory.capacity = 1024 * 1024 * 1024;
     memory.buffer = (uint8_t*) malloc(sizeof(uint8_t) * memory.capacity);
 
+    Reporter reporter = {};
+    reporter.filename = cstr_as_string_view(input_filepath);
+    reporter.input = input;
+
+    // TODO: Can we use Linear_Memory for collecting tokens instead of Dynamic_Array
+    Alexer alexer = {};
+    alexer.input = input;
+    alexer.reporter = reporter;
+    alexer.tokenize();
+
     Parser parser = {};
     parser.memory = &memory;
+    parser.reporter = reporter;
     parser.tokens = {alexer.tokens.size, alexer.tokens.data};
-    parser.input = input;
-    parser.filename = cstr_as_string_view(input_filepath);
-
     Module module = parser.parse_module();
-
     assert(parser.tokens.count == 0 && "The tokens were not fully parsed");
 
     Type_Checker type_checker = {};
     type_checker.memory = &memory;
-    type_checker.input = input;
-    type_checker.filename = cstr_as_string_view(input_filepath);
-
+    type_checker.reporter = reporter;
     type_checker.check_types_of_module(&module);
 
     Wat_Compiler wat_compiler = {};
     wat_compiler.memory = &memory;
-    wat_compiler.input = input;
-    wat_compiler.filename = cstr_as_string_view(input_filepath);
+    wat_compiler.reporter = reporter;
 
     S_Expr *wat = wat_compiler.compile_module(module);
 

@@ -164,7 +164,7 @@ Type Parser::parse_type_annotation()
         tokens.chop(1);
         return Type::U64;
     } else {
-        fail("Unknown type `", type_name, "`");
+        reporter.fail(current_offset(), "Unknown type `", type_name, "`");
         return Type::Unchecked;
     }
 }
@@ -359,7 +359,7 @@ Expression *Parser::parse_primary()
         primary_expression->kind = Expression_Kind::Number_Literal;
         auto x = tokens.items->text.as_integer<uint32_t>();
         if (!x.has_value) {
-            fail("`", tokens.items->text, "` is not a number");
+            reporter.fail(current_offset(), "`", tokens.items->text, "` is not a number");
         }
         primary_expression->number_literal.unwrap = x.unwrap;
         tokens.chop(1);
@@ -379,7 +379,7 @@ Expression *Parser::parse_primary()
     } break;
 
     default:
-        fail("Unexpected token in an expression");
+        reporter.fail(current_offset(), "Unexpected token in an expression");
     }
 
     return primary_expression;
