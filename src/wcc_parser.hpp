@@ -7,6 +7,7 @@
 enum class Type
 {
     Unchecked,
+    U0,
     U32,
     U64,
 };

@@ -4,11 +4,33 @@
 #include "./wcc_memory.hpp"
 #include "./wcc_parser.hpp"
 
+
 struct Type_Checker
 {
+    struct Scope
+    {
+        Args_List *args_list;
+        Scope *next;
+    };
+
+
     Linear_Memory *memory;
     Reporter reporter;
+    Scope *scope;
 
+    Maybe<Type> type_of_name(String_View name) const;
+    void push_scope(Args_List *args_list = nullptr);
+    void push_var_def(Var_Def var_def);
+    void pop_scope();
+
+    Type check_types_of_local_var_def(Local_Var_Def *local_var_def);
+    Type check_types_of_while(While *hwile);
+    Type check_types_of_assignment(Assignment *assignment);
+    Type check_types_of_subtract_assignment(Subtract_Assignment *subtract_assignment);
+    Type check_types_of_expression(Expression *expression);
+
+    Type check_types_of_statement(Statement *statement);
+    Type check_types_of_block(Block *block);
     void check_types_of_func_def(Func_Def *func_def);
     void check_types_of_module(Module *module);
 };

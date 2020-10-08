@@ -73,7 +73,9 @@ void print1(FILE *stream, Type type)
     case Type::Unchecked:
         print(stream, "Type::Unchecked");
         break;
-
+    case Type::U0:
+        print(stream, "Type::U0");
+        break;
     case Type::U32:
         print(stream, "Type::U32");
         break;

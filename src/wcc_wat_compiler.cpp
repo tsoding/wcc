@@ -42,6 +42,7 @@ S_Expr *Wat_Compiler::wat_name_of_type(Type type)
 {
     switch (type) {
     case Type::Unchecked:
+    case Type::U0:
         assert(0 && "Something went horribly wrong. Such value should never reach here.");
         break;
 
