@@ -355,6 +355,7 @@ Expression *Parser::parse_primary()
     assert(tokens.count > 0);
 
     Expression *primary_expression = memory->alloc<Expression>();
+    primary_expression->offset = current_offset();
 
     switch (tokens.items->type) {
     case Token_Type::Number_Literal: {
@@ -401,6 +402,7 @@ Expression *Parser::parse_plus_expression()
     Expression *rhs = parse_primary();
 
     Expression *plus_expression = memory->alloc<Expression>();
+    plus_expression->offset = lhs->offset;
     plus_expression->kind = Expression_Kind::Plus;
     plus_expression->plus.lhs = lhs;
     plus_expression->plus.rhs = rhs;
@@ -422,6 +424,7 @@ Expression *Parser::parse_greater_expression()
     Expression *rhs = parse_plus_expression();
 
     Expression *greater_expression = memory->alloc<Expression>();
+    greater_expression->offset = lhs->offset;
     greater_expression->kind = Expression_Kind::Greater;
     greater_expression->greater.lhs = lhs;
     greater_expression->greater.rhs = rhs;

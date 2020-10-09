@@ -63,6 +63,7 @@ struct Expression
 {
     Expression_Kind kind;
     Type type;
+    size_t offset;
     union
     {
         Number_Literal number_literal;

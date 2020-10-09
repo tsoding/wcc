@@ -155,7 +155,7 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
                     wat_ident(statement.assignment.var_name),
                     compile_expression(statement.assignment.value));
     case Statement_Kind::Subtract_Assignment: {
-        // TODO: can we get rid of Subtract_Assignment and simply desugar it during the parsing?
+        // TODO: can we get rid of Subtract_Assignment and simply desugar it to Assignment during the parsing? @subass-sugar
         auto var_ident = wat_ident(statement.subtract_assignment.var_name);
         return list(atom("set_local"_sv),
                     var_ident,

@@ -1,6 +1,6 @@
 #include "./wcc_type_checker.hpp"
 
-Maybe<Type> Type_Checker::type_of_name(String_View name) const
+Type Type_Checker::type_of_name(size_t offset, String_View name) const
 {
     auto scope0 = scope;
 
@@ -8,14 +8,15 @@ Maybe<Type> Type_Checker::type_of_name(String_View name) const
         Args_List *args_list = scope0->args_list;
         while (args_list) {
             if (name == args_list->var_def.name) {
-                return {true, args_list->var_def.type};
+                return args_list->var_def.type;
             }
             args_list = args_list->next;
         }
         scope0 = scope0->next;
     }
 
-    return {};
+    reporter.fail(offset, "Could not find name `", name, "` in the current scope");
+    return Type::Unchecked;
 }
 
 void Type_Checker::push_scope(Args_List *args_list)
@@ -41,29 +42,80 @@ void Type_Checker::push_var_def(Var_Def var_def)
     scope->args_list = args_list;
 }
 
+void Type_Checker::check_types(size_t offset, Type expected_type, Type actual_type)
+{
+    if (expected_type != actual_type) {
+        reporter.fail(offset, "Expected type `", expected_type, "` but got `", actual_type, "`");
+    }
+}
+
 Type Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def)
 {
-    return Type::Unchecked;
+    check_types(local_var_def->value->offset, local_var_def->def.type, check_types_of_expression(local_var_def->value));
+    push_var_def(local_var_def->def);
+    return local_var_def->def.type;
 }
 
 Type Type_Checker::check_types_of_while(While *hwile)
 {
-    return Type::Unchecked;
+    // TODO: support for booleans @bool
+    check_types(hwile->condition->offset, Type::U32, check_types_of_expression(hwile->condition));
+    check_types_of_block(hwile->body);
+    return Type::U0;
 }
 
 Type Type_Checker::check_types_of_assignment(Assignment *assignment)
 {
-    return Type::Unchecked;
+    // TODO: check_types_of_assignment should report errors on the assignment's offset, not its value one
+    // TODO: assigment could be an expression that has the type of the variable it assigns
+    size_t offset = assignment->value->offset;
+    check_types(
+        offset,
+        type_of_name(offset, assignment->var_name),
+        check_types_of_expression(assignment->value));
+    return Type::U0;
 }
 
 Type Type_Checker::check_types_of_subtract_assignment(Subtract_Assignment *subtract_assignment)
 {
-    return Type::Unchecked;
+    // @subass-sugar
+    size_t offset = subtract_assignment->value->offset;
+    check_types(
+        offset,
+        type_of_name(offset, subtract_assignment->var_name),
+        check_types_of_expression(subtract_assignment->value));
+    return Type::U0;
 }
 
 Type Type_Checker::check_types_of_expression(Expression *expression)
 {
-    return Type::Unchecked;
+    assert(expression->type == Type::Unchecked);
+
+    switch (expression->kind) {
+    case Expression_Kind::Number_Literal: {
+        expression->type = Type::U32;
+    } break;
+
+    case Expression_Kind::Variable: {
+        expression->type = type_of_name(expression->offset, expression->variable.name);
+    } break;
+
+    case Expression_Kind::Plus: {
+        Type lhs_type = check_types_of_expression(expression->plus.lhs);
+        Type rhs_type = check_types_of_expression(expression->plus.rhs);
+        check_types(expression->plus.rhs->offset, lhs_type, rhs_type);
+        expression->type = lhs_type;
+    } break;
+
+    case Expression_Kind::Greater: {
+        Type lhs_type = check_types_of_expression(expression->plus.lhs);
+        Type rhs_type = check_types_of_expression(expression->plus.rhs);
+        check_types(expression->plus.rhs->offset, lhs_type, rhs_type);
+        expression->type = Type::U32; // @bool
+    } break;
+    }
+
+    return expression->type;
 }
 
 Type Type_Checker::check_types_of_statement(Statement *statement)

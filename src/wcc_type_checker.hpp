@@ -18,10 +18,12 @@ struct Type_Checker
     Reporter reporter;
     Scope *scope;
 
-    Maybe<Type> type_of_name(String_View name) const;
+    Type type_of_name(size_t offset, String_View name) const;
     void push_scope(Args_List *args_list = nullptr);
     void push_var_def(Var_Def var_def);
     void pop_scope();
+
+    void check_types(size_t offset, Type expected_type, Type actual_type);
 
     Type check_types_of_local_var_def(Local_Var_Def *local_var_def);
     Type check_types_of_while(While *hwile);
