@@ -118,6 +118,8 @@ struct Wat_Compiler
 
     S_Expr *wat_ident(String_View s);
     S_Expr *wat_name_of_type(Type type);
+
+    S_Expr *compile_type_cast(Type_Cast type_cast);
     S_Expr *compile_var_def(Var_Def var_def);
     S_Expr *compile_args_list(Args_List *args_list);
     S_Expr *compile_return_type(Type type);

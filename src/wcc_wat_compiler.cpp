@@ -113,9 +113,21 @@ S_Expr *Wat_Compiler::compile_greater(Greater greater)
     return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
 }
 
+S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
+{
+    auto expression = compile_expression(type_cast.expression);
+    if (type_cast.expression->type == Type::U32 && type_cast.type == Type::U64) {
+        return list(atom("i64.extend32_u"_sv), expression);
+    }
+
+    reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+}
+
 S_Expr *Wat_Compiler::compile_expression(Expression *expression)
 {
     switch (expression->kind) {
+    case Expression_Kind::Type_Cast:
+        return compile_type_cast(expression->type_cast);
     case Expression_Kind::Number_Literal:
         return compile_number_literal(expression->number_literal);
     case Expression_Kind::Variable:

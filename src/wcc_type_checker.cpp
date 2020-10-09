@@ -94,6 +94,11 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
     assert(expression->type == Type::Unchecked);
 
     switch (expression->kind) {
+    case Expression_Kind::Type_Cast: {
+        check_types_of_expression(expression->type_cast.expression);
+        expression->type = expression->type_cast.type;
+    } break;
+
     case Expression_Kind::Number_Literal: {
         expression->type = Type::U32;
     } break;

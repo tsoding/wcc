@@ -26,6 +26,7 @@ enum class Expression_Kind
     Variable,
     Plus,
     Greater,
+    Type_Cast,
 };
 
 struct Number_Literal
@@ -39,6 +40,12 @@ struct Variable
 };
 
 struct Expression;
+
+struct Type_Cast
+{
+    Type type;
+    Expression *expression;
+};
 
 struct Plus
 {
@@ -63,6 +70,7 @@ struct Expression
         Variable variable;
         Plus plus;
         Greater greater;
+        Type_Cast type_cast;
     };
 };
 

@@ -20,6 +20,9 @@ void print1(FILE *stream, Expression expression)
 {
     print(stream, "(");
     switch (expression.kind) {
+    case Expression_Kind::Type_Cast:
+        print(stream, "(cast ", expression.type_cast.type, " ", *expression.type_cast.expression, ")");
+        break;
     case Expression_Kind::Number_Literal:
         print(stream, expression.number_literal.unwrap);
         break;
