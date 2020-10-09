@@ -23,6 +23,7 @@ struct Type_Checker
     void push_var_def(Var_Def var_def);
     void pop_scope();
 
+    Expression *cast_expression_to(Expression *expression, Type type);
     Type check_types(size_t offset, Type expected_type, Type actual_type);
 
     Type check_types_of_local_var_def(Local_Var_Def *local_var_def);
