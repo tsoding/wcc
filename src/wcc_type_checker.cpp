@@ -45,12 +45,7 @@ void Type_Checker::push_var_def(Var_Def var_def)
 Type Type_Checker::check_types(size_t offset, Type expected_type, Type actual_type)
 {
     if (expected_type != actual_type) {
-        auto expected_kind = kind_of_type(expected_type);
-        auto actual_kind = kind_of_type(actual_type);
-
-        if (expected_kind != actual_kind || !is_kind_number(expected_kind) || size_of_type(expected_type) < size_of_type(actual_type)) {
-            reporter.fail(offset, "Expected type `", expected_type, "` but got `", actual_type, "`");
-        }
+        reporter.fail(offset, "Expected type `", expected_type, "` but got `", actual_type, "`");
     }
 
     return expected_type;
