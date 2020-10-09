@@ -9,4 +9,5 @@ using namespace aids;
 #include "./wcc_parser.cpp"
 #include "./wcc_wat_compiler.cpp"
 #include "./wcc_reporter.cpp"
+#include "./wcc_types.cpp"
 #include "./wcc_main.cpp"

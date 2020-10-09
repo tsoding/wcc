@@ -42,11 +42,18 @@ void Type_Checker::push_var_def(Var_Def var_def)
     scope->args_list = args_list;
 }
 
-void Type_Checker::check_types(size_t offset, Type expected_type, Type actual_type)
+Type Type_Checker::check_types(size_t offset, Type expected_type, Type actual_type)
 {
     if (expected_type != actual_type) {
-        reporter.fail(offset, "Expected type `", expected_type, "` but got `", actual_type, "`");
+        auto expected_kind = kind_of_type(expected_type);
+        auto actual_kind = kind_of_type(actual_type);
+
+        if (expected_kind != actual_kind || !is_kind_number(expected_kind) || size_of_type(expected_type) < size_of_type(actual_type)) {
+            reporter.fail(offset, "Expected type `", expected_type, "` but got `", actual_type, "`");
+        }
     }
+
+    return expected_type;
 }
 
 Type Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def)
@@ -103,14 +110,32 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
     case Expression_Kind::Plus: {
         Type lhs_type = check_types_of_expression(expression->plus.lhs);
         Type rhs_type = check_types_of_expression(expression->plus.rhs);
-        check_types(expression->plus.rhs->offset, lhs_type, rhs_type);
-        expression->type = lhs_type;
+
+        if (!is_kind_number(kind_of_type(lhs_type))) {
+            reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", lhs_type, "`");
+        }
+
+        if (!is_kind_number(kind_of_type(rhs_type))) {
+            reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", rhs_type, "`");
+        }
+
+        expression->type = check_types(expression->plus.rhs->offset, lhs_type, rhs_type);
     } break;
 
     case Expression_Kind::Greater: {
         Type lhs_type = check_types_of_expression(expression->plus.lhs);
         Type rhs_type = check_types_of_expression(expression->plus.rhs);
+
+        if (!is_kind_number(kind_of_type(lhs_type))) {
+            reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", lhs_type, "`");
+        }
+
+        if (!is_kind_number(kind_of_type(rhs_type))) {
+            reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", rhs_type, "`");
+        }
+
         check_types(expression->plus.rhs->offset, lhs_type, rhs_type);
+
         expression->type = Type::U32; // @bool
     } break;
     }

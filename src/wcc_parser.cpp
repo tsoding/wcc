@@ -74,13 +74,13 @@ void print1(FILE *stream, Type type)
         print(stream, "Type::Unchecked");
         break;
     case Type::U0:
-        print(stream, "Type::U0");
+        print(stream, "u0");
         break;
     case Type::U32:
-        print(stream, "Type::U32");
+        print(stream, "u32");
         break;
     case Type::U64:
-        print(stream, "Type::U64");
+        print(stream, "u64");
         break;
     }
 }

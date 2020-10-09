@@ -26,7 +26,7 @@ struct Reporter
     }
 
     template <typename... Args>
-    void fail(size_t offset, Args... args) const
+    [[noreturn]] void fail(size_t offset, Args... args) const
     {
         inform(offset, "error: ", args...);
         exit(1);

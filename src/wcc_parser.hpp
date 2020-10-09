@@ -3,14 +3,7 @@
 
 #include "./wcc_alexer.hpp"
 #include "./wcc_memory.hpp"
-
-enum class Type
-{
-    Unchecked,
-    U0,
-    U32,
-    U64,
-};
+#include "./wcc_types.hpp"
 
 struct Var_Def
 {
