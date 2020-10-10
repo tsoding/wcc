@@ -18,10 +18,15 @@ enum class Token_Type
     Number_Literal,
     While,
     Greater,
+    Less_Equals,
     Plus,
     Minus_Equals,
     Minus,
     Semicolon,
+    And,
+    Rem,
+    If,
+    Else
 };
 
 void print1(FILE *stream, Token_Type type);

@@ -20,11 +20,16 @@ void print1(FILE *stream, Token_Type type)
     case Token_Type::Number_Literal: print(stream, "Number_Literal"); break;
     case Token_Type::While: print(stream, "While"); break;
     case Token_Type::Greater: print(stream, "Greater"); break;
+    case Token_Type::Less_Equals: print(stream, "Less_Equals"); break;
     case Token_Type::Plus: print(stream, "Plus"); break;
     case Token_Type::Minus_Equals: print(stream, "Minus_Equals"); break;
     case Token_Type::Minus: print(stream, "Minus"); break;
     case Token_Type::Semicolon: print(stream, "Semicolon"); break;
     case Token_Type::Comma: print(stream, "Comma"); break;
+    case Token_Type::And: print(stream, "And"); break;
+    case Token_Type::Rem: print(stream, "Rem"); break;
+    case Token_Type::If: print(stream, "If"); break;
+    case Token_Type::Else: print(stream, "Else"); break;
     }
 }
 
@@ -72,6 +77,10 @@ void Alexer::tokenize()
                 tokens.push(Token {Token_Type::Func, token_text});
             } else if (token_text == "local"_sv) {
                 tokens.push(Token {Token_Type::Local, token_text});
+            } else if (token_text == "if"_sv) {
+                tokens.push(Token {Token_Type::If, token_text});
+            } else if (token_text == "else"_sv) {
+                tokens.push(Token {Token_Type::Else, token_text});
             } else {
                 tokens.push(Token {Token_Type::Symbol, token_text});
             }
@@ -101,11 +110,28 @@ void Alexer::tokenize()
             case '>':
                 tokens.push(Token {Token_Type::Greater, chop_off(&source, 1)});
                 break;
+            case '<':
+                if (source.count > 1 && source.data[1] == '=') {
+                    tokens.push(Token {Token_Type::Less_Equals, chop_off(&source, 2)});
+                } else {
+                   reporter.fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
+                }
+                break;
+            case '&':
+                if (source.count > 1 && source.data[1] == '&') {
+                    tokens.push(Token {Token_Type::And, chop_off(&source, 2)});
+                } else {
+                   reporter.fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
+                }
+                break;
             case ',':
                 tokens.push(Token {Token_Type::Comma, chop_off(&source, 1)});
                 break;
             case '+':
                 tokens.push(Token {Token_Type::Plus, chop_off(&source, 1)});
+                break;
+            case '%':
+                tokens.push(Token {Token_Type::Rem, chop_off(&source, 1)});
                 break;
             case '-':
                 if (source.count > 1 && source.data[1] == '=') {
