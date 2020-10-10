@@ -105,19 +105,39 @@ S_Expr *Wat_Compiler::compile_variable(Variable variable)
 
 S_Expr *Wat_Compiler::compile_plus(Plus plus)
 {
-    return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
+    assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly.");
+
+    switch (plus.lhs->type) {
+    case Type::U32:
+        return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
+    case Type::U64:
+        return list(atom("i64.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
+    default:
+        assert(0 && "Type Checking step didn't work correctly.");
+        return nullptr;
+    }
 }
 
 S_Expr *Wat_Compiler::compile_greater(Greater greater)
 {
-    return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
+    assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly.");
+
+    switch (greater.lhs->type) {
+    case Type::U32:
+        return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
+    case Type::U64:
+        return list(atom("i64.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
+    default:
+        assert(0 && "Type Checking step didn't work correctly.");
+        return nullptr;
+    }
 }
 
 S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
 {
     auto expression = compile_expression(type_cast.expression);
     if (type_cast.expression->type == Type::U32 && type_cast.type == Type::U64) {
-        return list(atom("i64.extend32_u"_sv), expression);
+        return list(atom("i64.extend_u/i32"_sv), expression);
     }
 
     reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
@@ -169,11 +189,26 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
     case Statement_Kind::Subtract_Assignment: {
         // TODO: can we get rid of Subtract_Assignment and simply desugar it to Assignment during the parsing? @subass-sugar
         auto var_ident = wat_ident(statement.subtract_assignment.var_name);
-        return list(atom("set_local"_sv),
-                    var_ident,
-                    list(atom("i32.sub"_sv),
-                         list(atom("get_local"_sv), var_ident),
-                         compile_expression(statement.subtract_assignment.value)));
+
+        switch (statement.subtract_assignment.value->type) {
+        case Type::U32:
+            return list(atom("set_local"_sv),
+                        var_ident,
+                        list(atom("i32.sub"_sv),
+                             list(atom("get_local"_sv), var_ident),
+                             compile_expression(statement.subtract_assignment.value)));
+        case Type::U64:
+            return list(atom("set_local"_sv),
+                        var_ident,
+                        list(atom("i64.sub"_sv),
+                             list(atom("get_local"_sv), var_ident),
+                             compile_expression(statement.subtract_assignment.value)));
+
+        default:
+            assert(0 && "Type Checking step didn't work correctly.");
+            return nullptr;
+        }
+
     }
     case Statement_Kind::Expression:
         return compile_expression(statement.expression);

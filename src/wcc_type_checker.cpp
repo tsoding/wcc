@@ -51,21 +51,41 @@ Type Type_Checker::check_types(size_t offset, Type expected_type, Type actual_ty
     return expected_type;
 }
 
-Type Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def)
+Expression *Type_Checker::cast_expression_to(Expression *expression, Type type)
 {
-    auto value_type = check_types_of_expression(local_var_def->value);
+    Expression *cast_expression = memory->alloc<Expression>();
+    cast_expression->kind = Expression_Kind::Type_Cast;
+    cast_expression->type = type;
+    cast_expression->offset = expression->offset;
+    cast_expression->type_cast.type = cast_expression->type;
+    cast_expression->type_cast.expression = expression;
+    return cast_expression;
+}
 
-    if (local_var_def->def.type != value_type) {
-        if (kind_of_type(local_var_def->def.type) == kind_of_type(value_type) &&
-            is_kind_number(kind_of_type(local_var_def->def.type)) &&
-            size_of_type(local_var_def->def.type) >= size_of_type(value_type))
+Expression *Type_Checker::try_implicitly_cast_expression_to(Expression *expression, Type cast_type)
+{
+    auto expression_type = expression->type;
+
+    if (cast_type != expression_type) {
+        if (kind_of_type(cast_type) == kind_of_type(expression_type) &&
+            is_kind_number(kind_of_type(cast_type)) &&
+            size_of_type(cast_type) >= size_of_type(expression_type))
         {
-            local_var_def->value = cast_expression_to(local_var_def->value, local_var_def->def.type);
+            return cast_expression_to(expression, cast_type);
         } else {
-            reporter.fail(local_var_def->value->offset, "Expected type `", local_var_def->def.type, "` but got `", value_type, "`");
+            reporter.fail(expression->offset, "Expected type `", cast_type, "` but got `", expression_type, "`");
         }
     }
 
+    return expression;
+}
+
+Type Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def)
+{
+    check_types_of_expression(local_var_def->value);
+    local_var_def->value = try_implicitly_cast_expression_to(
+        local_var_def->value,
+        local_var_def->def.type);
     push_var_def(local_var_def->def);
     return local_var_def->def.type;
 }
@@ -94,22 +114,11 @@ Type Type_Checker::check_types_of_subtract_assignment(Subtract_Assignment *subtr
 {
     // @subass-sugar
     size_t offset = subtract_assignment->value->offset;
-    check_types(
-        offset,
-        type_of_name(offset, subtract_assignment->var_name),
-        check_types_of_expression(subtract_assignment->value));
+    check_types_of_expression(subtract_assignment->value);
+    subtract_assignment->value = try_implicitly_cast_expression_to(
+        subtract_assignment->value,
+        type_of_name(offset, subtract_assignment->var_name));
     return Type::U0;
-}
-
-Expression *Type_Checker::cast_expression_to(Expression *expression, Type type)
-{
-    Expression *cast_expression = memory->alloc<Expression>();
-    cast_expression->kind = Expression_Kind::Type_Cast;
-    cast_expression->type = type;
-    cast_expression->offset = expression->offset;
-    cast_expression->type_cast.type = cast_expression->type;
-    cast_expression->type_cast.expression = expression;
-    return cast_expression;
 }
 
 Type Type_Checker::check_types_of_expression(Expression *expression)
@@ -157,7 +166,11 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
             reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", rhs_type, "`");
         }
 
-        check_types(expression->plus.rhs->offset, lhs_type, rhs_type);
+        if (size_of_type(lhs_type) < size_of_type(rhs_type)) {
+            expression->plus.lhs = try_implicitly_cast_expression_to(expression->plus.lhs, rhs_type);
+        } else {
+            expression->plus.rhs = try_implicitly_cast_expression_to(expression->plus.rhs, lhs_type);
+        }
 
         expression->type = Type::U32; // @bool
     } break;

@@ -18,7 +18,7 @@ wcc: $(wildcard src/*.cpp) $(wildcard src/*.hpp)
 
 .PHONY: test
 test: test.js samples
-	node --unhandled-rejections=strict test.js
+	node --unhandled-rejections=strict --experimental-wasm-bigint test.js
 
 .PHONY: samples
 # TODO: rot13_char.wc sample is not compilable
