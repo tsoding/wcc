@@ -11,6 +11,25 @@ Low level language that compiles directly to WebAssembly. The goal of the projec
 - wcc will be a single executable that does not depend on binaryen/wabt/etc. (work in progress)
 - ...
 
+## Examples
+
+### Fibonacci
+
+```go
+func fib(n: u32): u32 {
+    local a: u32 = 0;
+    local b: u32 = 1;
+    local c: u32 = 0;
+    while (n > 0) {
+        c = a + b;
+        a = b;
+        b = c;
+        n -= 1;
+    }
+    a;
+}
+```
+
 ## Dependancies
 
 - [GNU make 4.2.1+](https://www.gnu.org/software/make/)
