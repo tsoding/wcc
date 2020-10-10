@@ -9,19 +9,16 @@ Low level language that compiles directly to WebAssembly. The goal of the projec
 - [node v13.5.0+](https://nodejs.org/)
 - [wabt](https://github.com/WebAssembly/wabt)
 
-## Build
+## Quick Start
 
-```
+``` console
 $ make
-$ make test
 $ cat ./samples/fib.wc
 $ ./wcc -t wat ./samples/fib.wc
 ```
 
-## Roadmap
+For more info on how to use the build do
 
-- [X] Tokenizer
-- [X] AST model
-- [X] Parser
-- [X] Code Generation
-- [ ] Type Checking
+```console
+$ make help
+```
