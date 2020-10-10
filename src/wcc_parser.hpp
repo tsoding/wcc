@@ -15,6 +15,7 @@ enum class Statement_Kind
 {
     Local_Var_Def,
     While,
+    If,
     Assignment,
     Subtract_Assignment,
     Expression,
@@ -88,6 +89,13 @@ struct While
     Block *body;
 };
 
+struct If
+{
+    Expression *condition;
+    Block *then;
+    Block *elze;
+};
+
 struct Assignment
 {
     String_View var_name;
@@ -108,6 +116,7 @@ struct Statement
     {
         Local_Var_Def local_var_def;
         While hwile;
+        If iph;
         Assignment assignment;
         Subtract_Assignment subtract_assignment;
         Expression *expression;
@@ -241,6 +250,7 @@ struct Parser
     Assignment parse_assignment();
     Local_Var_Def parse_local_var_def();
     While parse_while();
+    If parse_if();
     Type parse_type_annotation();
     Var_Def parse_var_def();
     Args_List *parse_args_list();

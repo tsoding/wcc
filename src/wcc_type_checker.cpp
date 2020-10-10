@@ -179,6 +179,12 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
     return expression->type;
 }
 
+Type check_types_of_if(If *iph)
+{
+    assert(0 && "TODO: check_types_of_if is not implemented");
+    return Type::Unchecked;
+}
+
 Type Type_Checker::check_types_of_statement(Statement *statement)
 {
     switch (statement->kind) {
@@ -186,6 +192,8 @@ Type Type_Checker::check_types_of_statement(Statement *statement)
         return check_types_of_local_var_def(&statement->local_var_def);
     case Statement_Kind::While:
         return check_types_of_while(&statement->hwile);
+    case Statement_Kind::If:
+        return check_types_of_if(&statement->iph);
     case Statement_Kind::Assignment:
         return check_types_of_assignment(&statement->assignment);
     case Statement_Kind::Subtract_Assignment:

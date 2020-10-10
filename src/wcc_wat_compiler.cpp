@@ -172,6 +172,9 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
     case Statement_Kind::Local_Var_Def:
         reporter.fail(statement.offset, "TODO: Local variable definitions are only allowed at the beginning of the function");
         break;
+    case Statement_Kind::If:
+        assert(0 && "TODO: compilation of if is not implemented yet");
+        break;
     case Statement_Kind::While:
         // (block
         //  (loop

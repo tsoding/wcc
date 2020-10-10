@@ -42,6 +42,9 @@ void print1(FILE *stream, Expression expression)
 void print1(FILE *stream, Statement statement)
 {
     switch (statement.kind) {
+    case Statement_Kind::If:
+        print(stream, "(if ", *statement.iph.condition, " ", statement.iph.then, " ", statement.iph.elze, ")");
+        break;
     case Statement_Kind::While:
         print(stream, "(while ", *statement.hwile.condition, " ", statement.hwile.body, ")");
         break;
@@ -180,6 +183,31 @@ Type Parser::parse_type_annotation()
     }
 }
 
+If Parser::parse_if()
+{
+    If result = {};
+    expect_token_type(Token_Type::If);
+    tokens.chop(1);
+
+    expect_token_type(Token_Type::Open_Paren);
+    tokens.chop(1);
+
+    result.condition = parse_expression();
+
+    expect_token_type(Token_Type::Closed_Paren);
+    tokens.chop(1);
+
+    result.then = parse_block();
+
+    // TODO: there is no else-less if support
+    expect_token_type(Token_Type::Else);
+    tokens.chop(1);
+
+    result.elze = parse_block();
+
+    return result;
+}
+
 While Parser::parse_while()
 {
     While result = {};
@@ -261,6 +289,10 @@ Statement Parser::parse_statement()
     case Token_Type::While:
         result.kind = Statement_Kind::While;
         result.hwile = parse_while();
+        break;
+    case Token_Type::If:
+        result.kind = Statement_Kind::If;
+        result.iph = parse_if();
         break;
     case Token_Type::Local:
         result.kind = Statement_Kind::Local_Var_Def;
