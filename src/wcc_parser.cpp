@@ -79,6 +79,9 @@ void print1(FILE *stream, Type type)
     case Type::U0:
         print(stream, "u0");
         break;
+    case Type::U8:
+        print(stream, "u8");
+        break;
     case Type::U32:
         print(stream, "u32");
         break;
@@ -168,6 +171,9 @@ Type Parser::parse_type_annotation()
     } else if (type_name == "u64"_sv) {
         tokens.chop(1);
         return Type::U64;
+    } else if (type_name == "u8"_sv) {
+        tokens.chop(1);
+        return Type::U8;
     } else {
         reporter.fail(current_offset(), "Unknown type `", type_name, "`");
         return Type::Unchecked;

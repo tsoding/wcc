@@ -4,6 +4,7 @@ Type_Kind kind_of_type(Type type)
 {
     switch (type) {
     case Type::U0:
+    case Type::U8:
     case Type::U32:
     case Type::U64:
         return Type_Kind::Unsigned_Integer;
@@ -19,6 +20,7 @@ size_t size_of_type(Type type)
 {
     switch (type) {
     case Type::U0:  return 0;
+    case Type::U8:  return 1;
     case Type::U32: return 4;
     case Type::U64: return 8;
     case Type::Unchecked:
