@@ -6,6 +6,15 @@ enum class Target
     Tokens,
 };
 
+void print1(FILE *stream, Target target)
+{
+    switch (target) {
+    case Target::Wat: print1(stream, "wat"); break;
+    case Target::Ast: print1(stream, "ast"); break;
+    case Target::Tokens: print1(stream, "tokens"); break;
+    }
+}
+
 Maybe<Target> target_by_name(String_View name)
 {
     if (name == "wat"_sv)    return {true, Target::Wat};
@@ -83,12 +92,22 @@ int main(int argc, char *argv[])
     alexer.reporter = reporter;
     alexer.tokenize();
 
+    if (target == Target::Tokens) {
+        alexer.dump_tokens();
+        return 0;
+    }
+
     Parser parser = {};
     parser.memory = &memory;
     parser.reporter = reporter;
     parser.tokens = {alexer.tokens.size, alexer.tokens.data};
     Module module = parser.parse_module();
     assert(parser.tokens.count == 0 && "The tokens were not fully parsed");
+
+    if (target == Target::Ast) {
+        println(stdout, module);
+        return 0;
+    }
 
     Type_Checker type_checker = {};
     type_checker.memory = &memory;
@@ -101,17 +120,11 @@ int main(int argc, char *argv[])
 
     S_Expr *wat = wat_compiler.compile_module(module);
 
-    switch (target) {
-    case Target::Wat:
+    if (target == Target::Wat) {
         println(stdout, wat);
-        break;
-    case Target::Ast:
-        println(stdout, module);
-        break;
-    case Target::Tokens:
-        alexer.dump_tokens();
-        break;
+        return 0;
     }
 
-    return 0;
+    println(stdout, "Unsupported target `", target, "`");
+    return 1;
 }
