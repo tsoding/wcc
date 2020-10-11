@@ -16,9 +16,41 @@ void print1(FILE *stream, Module module)
     print(stream, "(module ", module.top_level_defs, ")");
 }
 
+void print1(FILE *stream, Expression_Kind expression_kind)
+{
+    switch (expression_kind) {
+    case Expression_Kind::Number_Literal:
+        print(stream, "Number_Literal");
+        break;
+    case Expression_Kind::Variable:
+        print(stream, "Variable");
+        break;
+    case Expression_Kind::Plus:
+        print(stream, "Plus");
+        break;
+    case Expression_Kind::Greater:
+        print(stream, "Greater");
+        break;
+    case Expression_Kind::Type_Cast:
+        print(stream, "Type_Cast");
+        break;
+    case Expression_Kind::Less_Equals:
+        print(stream, "Less_Equals");
+        break;
+    case Expression_Kind::Minus:
+        print(stream, "Minus");
+        break;
+    case Expression_Kind::Rem:
+        print(stream, "Rem");
+        break;
+    case Expression_Kind::And:
+        print(stream, "And");
+        break;
+    }
+}
+
 void print1(FILE *stream, Expression expression)
 {
-    print(stream, "(");
     switch (expression.kind) {
     case Expression_Kind::Type_Cast:
         print(stream, "(cast ", expression.type_cast.type, " ", *expression.type_cast.expression, ")");
@@ -30,13 +62,24 @@ void print1(FILE *stream, Expression expression)
         print(stream, expression.variable.name);
         break;
     case Expression_Kind::Plus:
-        print(stream, "(+ ", *expression.plus.lhs, " ", *expression.plus.rhs, ")");
+        print(stream, "(+ ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
+        break;
+    case Expression_Kind::Minus:
+        print(stream, "(- ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
+        break;
+    case Expression_Kind::Rem:
+        print(stream, "(% ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
+        break;
+    case Expression_Kind::And:
+        print(stream, "(&& ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
         break;
     case Expression_Kind::Greater:
-        print(stream, "(> ", *expression.greater.lhs, " ", *expression.greater.rhs, ")");
+        print(stream, "(> ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
+        break;
+    case Expression_Kind::Less_Equals:
+        print(stream, "(<= ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
         break;
     }
-    print(stream, " ", expression.type, ")");
 }
 
 void print1(FILE *stream, Statement statement)
@@ -429,55 +472,36 @@ Expression *Parser::parse_primary()
     return primary_expression;
 }
 
-Expression *Parser::parse_plus_expression()
+Expression *Parser::parse_binary_op(size_t binary_op_priority)
 {
-    Expression *lhs = parse_primary();
+    if (binary_op_priority < binary_ops_count) {
+        Expression *lhs = parse_binary_op(binary_op_priority + 1);
 
-    if (tokens.count == 0 || tokens.items->type != Token_Type::Plus) {
-        return lhs;
+        if (tokens.count == 0 || tokens.items->type != binary_ops[binary_op_priority]) {
+            return lhs;
+        }
+
+        expect_token_type(binary_ops[binary_op_priority]);
+        tokens.chop(1);
+
+        Expression *rhs = parse_binary_op(binary_op_priority + 1);
+
+        Expression *op = memory->alloc<Expression>();
+        op->offset = lhs->offset;
+        op->kind = binary_op_kinds[binary_op_priority];
+        op->binary_op.lhs = lhs;
+        op->binary_op.rhs = rhs;
+        return op;
+    } else {
+        return parse_primary();
     }
-
-    expect_token_type(Token_Type::Plus);
-    tokens.chop(1);
-
-    Expression *rhs = parse_primary();
-
-    Expression *plus_expression = memory->alloc<Expression>();
-    plus_expression->offset = lhs->offset;
-    plus_expression->kind = Expression_Kind::Plus;
-    plus_expression->plus.lhs = lhs;
-    plus_expression->plus.rhs = rhs;
-
-    return plus_expression;
-}
-
-Expression *Parser::parse_greater_expression()
-{
-    Expression *lhs = parse_plus_expression();
-
-    if (tokens.count == 0 || tokens.items->type != Token_Type::Greater) {
-        return lhs;
-    }
-
-    expect_token_type(Token_Type::Greater);
-    tokens.chop(1);
-
-    Expression *rhs = parse_plus_expression();
-
-    Expression *greater_expression = memory->alloc<Expression>();
-    greater_expression->offset = lhs->offset;
-    greater_expression->kind = Expression_Kind::Greater;
-    greater_expression->greater.lhs = lhs;
-    greater_expression->greater.rhs = rhs;
-
-    return greater_expression;
 }
 
 Expression *Parser::parse_expression()
 {
     assert(tokens.count > 0);
 
-    return parse_greater_expression();
+    return parse_binary_op(0);
 }
 
 Top_Level_Def *Parser::parse_top_level_def()

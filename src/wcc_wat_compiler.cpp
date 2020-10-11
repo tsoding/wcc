@@ -107,7 +107,7 @@ S_Expr *Wat_Compiler::compile_variable(Variable variable)
     return list(atom("get_local"_sv), wat_ident(variable.name));
 }
 
-S_Expr *Wat_Compiler::compile_plus(Plus plus)
+S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
 {
     assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly.");
 
@@ -122,7 +122,7 @@ S_Expr *Wat_Compiler::compile_plus(Plus plus)
     }
 }
 
-S_Expr *Wat_Compiler::compile_greater(Greater greater)
+S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
 {
     assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly.");
 
@@ -157,9 +157,15 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
     case Expression_Kind::Variable:
         return compile_variable(expression->variable);
     case Expression_Kind::Plus:
-        return compile_plus(expression->plus);
+        return compile_plus(expression->binary_op);
     case Expression_Kind::Greater:
-        return compile_greater(expression->greater);
+        return compile_greater(expression->binary_op);
+    case Expression_Kind::Minus:
+    case Expression_Kind::Rem:
+    case Expression_Kind::And:
+    case Expression_Kind::Less_Equals:
+        reporter.fail(expression->offset, "Compilation of `", expression->kind, "` is not supported");
+        return nullptr;
     }
 
     assert(0 && "Unknown type of expression");

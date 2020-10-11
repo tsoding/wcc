@@ -140,40 +140,47 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
     } break;
 
     case Expression_Kind::Plus: {
-        Type lhs_type = check_types_of_expression(expression->plus.lhs);
-        Type rhs_type = check_types_of_expression(expression->plus.rhs);
+        Type lhs_type = check_types_of_expression(expression->binary_op.lhs);
+        Type rhs_type = check_types_of_expression(expression->binary_op.rhs);
 
         if (!is_kind_number(kind_of_type(lhs_type))) {
-            reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", lhs_type, "`");
+            reporter.fail(expression->binary_op.lhs->offset, "Expected a number but got `", lhs_type, "`");
         }
 
         if (!is_kind_number(kind_of_type(rhs_type))) {
-            reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", rhs_type, "`");
+            reporter.fail(expression->binary_op.lhs->offset, "Expected a number but got `", rhs_type, "`");
         }
 
-        expression->type = check_types(expression->plus.rhs->offset, lhs_type, rhs_type);
+        expression->type = check_types(expression->binary_op.rhs->offset, lhs_type, rhs_type);
     } break;
 
     case Expression_Kind::Greater: {
-        Type lhs_type = check_types_of_expression(expression->plus.lhs);
-        Type rhs_type = check_types_of_expression(expression->plus.rhs);
+        Type lhs_type = check_types_of_expression(expression->binary_op.lhs);
+        Type rhs_type = check_types_of_expression(expression->binary_op.rhs);
 
         if (!is_kind_number(kind_of_type(lhs_type))) {
-            reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", lhs_type, "`");
+            reporter.fail(expression->binary_op.lhs->offset, "Expected a number but got `", lhs_type, "`");
         }
 
         if (!is_kind_number(kind_of_type(rhs_type))) {
-            reporter.fail(expression->plus.lhs->offset, "Expected a number but got `", rhs_type, "`");
+            reporter.fail(expression->binary_op.lhs->offset, "Expected a number but got `", rhs_type, "`");
         }
 
         if (size_of_type(lhs_type) < size_of_type(rhs_type)) {
-            expression->plus.lhs = try_implicitly_cast_expression_to(expression->plus.lhs, rhs_type);
+            expression->binary_op.lhs = try_implicitly_cast_expression_to(expression->binary_op.lhs, rhs_type);
         } else {
-            expression->plus.rhs = try_implicitly_cast_expression_to(expression->plus.rhs, lhs_type);
+            expression->binary_op.rhs = try_implicitly_cast_expression_to(expression->binary_op.rhs, lhs_type);
         }
 
         expression->type = Type::U32; // @bool
     } break;
+
+    case Expression_Kind::And:
+    case Expression_Kind::Rem:
+    case Expression_Kind::Minus:
+    case Expression_Kind::Less_Equals:
+        reporter.fail(expression->offset, "TODO: Type checking of `", expression->kind, "` operation is not implemented yet");
+        break;
     }
 
     return expression->type;

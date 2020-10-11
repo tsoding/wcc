@@ -28,7 +28,35 @@ enum class Expression_Kind
     Plus,
     Greater,
     Type_Cast,
+    Less_Equals,
+    Minus,
+    Rem,
+    And,
 };
+
+void print1(FILE *stream, Expression_Kind expression_kind);
+
+const Token_Type binary_ops[] = {
+    Token_Type::And,
+    Token_Type::Less_Equals,
+    Token_Type::Greater,
+    Token_Type::Plus,
+    Token_Type::Minus,
+    Token_Type::Rem,
+};
+const size_t binary_ops_count = sizeof(binary_ops) / sizeof(binary_ops[0]);
+
+const Expression_Kind binary_op_kinds[] = {
+    Expression_Kind::And,
+    Expression_Kind::Less_Equals,
+    Expression_Kind::Greater,
+    Expression_Kind::Plus,
+    Expression_Kind::Minus,
+    Expression_Kind::Rem,
+};
+const size_t binary_op_kinds_count = sizeof(binary_op_kinds) / sizeof(binary_op_kinds[0]);
+
+static_assert(binary_ops_count == binary_op_kinds_count);
 
 struct Number_Literal
 {
@@ -48,13 +76,7 @@ struct Type_Cast
     Expression *expression;
 };
 
-struct Plus
-{
-    Expression *lhs;
-    Expression *rhs;
-};
-
-struct Greater
+struct Binary_Op
 {
     Expression *lhs;
     Expression *rhs;
@@ -69,8 +91,7 @@ struct Expression
     {
         Number_Literal number_literal;
         Variable variable;
-        Plus plus;
-        Greater greater;
+        Binary_Op binary_op;
         Type_Cast type_cast;
     };
 };
@@ -259,8 +280,7 @@ struct Parser
     Block *parse_block();
     Statement parse_dummy_statement();
     Subtract_Assignment parse_subtract_assignment();
-    Expression *parse_plus_expression();
-    Expression *parse_greater_expression();
+    Expression *parse_binary_op(size_t binary_op_priority);
     Expression *parse_expression();
     Expression *parse_primary();
     Top_Level_Def *parse_top_level_def();

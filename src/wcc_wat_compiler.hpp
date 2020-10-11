@@ -125,8 +125,8 @@ struct Wat_Compiler
     S_Expr *compile_return_type(Type type);
     S_Expr *compile_number_literal(Number_Literal number_literal);
     S_Expr *compile_variable(Variable variable);
-    S_Expr *compile_plus(Plus plus);
-    S_Expr *compile_greater(Greater greater);
+    S_Expr *compile_plus(Binary_Op plus);
+    S_Expr *compile_greater(Binary_Op greater);
     S_Expr *compile_expression(Expression *expression);
     S_Expr *compile_statement(Statement statement);
     S_Expr *compile_block(Block *block);
