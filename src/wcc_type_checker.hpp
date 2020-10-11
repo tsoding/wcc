@@ -29,6 +29,7 @@ struct Type_Checker
 
     Type check_types_of_local_var_def(Local_Var_Def *local_var_def);
     Type check_types_of_while(While *hwile);
+    Type check_types_of_if(If *iph);
     Type check_types_of_assignment(Assignment *assignment);
     Type check_types_of_subtract_assignment(Subtract_Assignment *subtract_assignment);
     Type check_types_of_expression(Expression *expression);

@@ -92,10 +92,21 @@ Type Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def)
 
 Type Type_Checker::check_types_of_while(While *hwile)
 {
-    // TODO: support for booleans @bool
+    // TODO: support for booleans (grep for @bool)
     check_types(hwile->condition->offset, Type::U32, check_types_of_expression(hwile->condition));
     check_types_of_block(hwile->body);
     return Type::U0;
+}
+
+Type Type_Checker::check_types_of_if(If *iph)
+{
+    // @bool
+    check_types(iph->condition->offset, Type::U32, check_types_of_expression(iph->condition));
+    auto then_type = check_types_of_block(iph->then);
+    auto else_type = check_types_of_block(iph->elze);
+    // TODO: unmatching then and else types should have offset of the last (or relevant) statement in a branch
+    check_types(iph->condition->offset, then_type, else_type);
+    return then_type;
 }
 
 Type Type_Checker::check_types_of_assignment(Assignment *assignment)
@@ -139,6 +150,8 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
         expression->type = type_of_name(expression->offset, expression->variable.name);
     } break;
 
+    case Expression_Kind::Rem:
+    case Expression_Kind::Minus:
     case Expression_Kind::Plus: {
         Type lhs_type = check_types_of_expression(expression->binary_op.lhs);
         Type rhs_type = check_types_of_expression(expression->binary_op.rhs);
@@ -154,6 +167,7 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
         expression->type = check_types(expression->binary_op.rhs->offset, lhs_type, rhs_type);
     } break;
 
+    case Expression_Kind::Less_Equals:
     case Expression_Kind::Greater: {
         Type lhs_type = check_types_of_expression(expression->binary_op.lhs);
         Type rhs_type = check_types_of_expression(expression->binary_op.rhs);
@@ -175,21 +189,17 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
         expression->type = Type::U32; // @bool
     } break;
 
-    case Expression_Kind::And:
-    case Expression_Kind::Rem:
-    case Expression_Kind::Minus:
-    case Expression_Kind::Less_Equals:
-        reporter.fail(expression->offset, "TODO: Type checking of `", expression->kind, "` operation is not implemented yet");
-        break;
+    case Expression_Kind::And: {
+        Type lhs_type = check_types_of_expression(expression->binary_op.lhs);
+        Type rhs_type = check_types_of_expression(expression->binary_op.rhs);
+        // @bool
+        check_types(expression->binary_op.lhs->offset, Type::U32, lhs_type);
+        check_types(expression->binary_op.rhs->offset, Type::U32, rhs_type);
+        expression->type = Type::U32;
+    } break;
     }
 
     return expression->type;
-}
-
-Type check_types_of_if(If *iph)
-{
-    assert(0 && "TODO: check_types_of_if is not implemented");
-    return Type::Unchecked;
 }
 
 Type Type_Checker::check_types_of_statement(Statement *statement)
