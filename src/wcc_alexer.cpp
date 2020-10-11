@@ -1,10 +1,5 @@
 #include "./wcc_alexer.hpp"
 
-bool is_semicolon(Token token)
-{
-    return Token_Type::Semicolon == token.type;
-}
-
 void print1(FILE *stream, Token_Type type)
 {
     switch (type) {
