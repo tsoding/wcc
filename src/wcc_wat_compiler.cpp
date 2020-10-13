@@ -140,11 +140,63 @@ S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
 S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
 {
     auto expression = compile_expression(type_cast.expression);
-    if (type_cast.expression->type == Type::U32 && type_cast.type == Type::U64) {
-        return list(atom("i64.extend_u/i32"_sv), expression);
+
+    switch (type_cast.expression->type) {
+    case Type::U0:
+        reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+
+    case Type::U8:
+        switch (type_cast.type) {
+        case Type::U0:
+            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+        case Type::U8:
+        case Type::U32:
+            return expression;
+        case Type::U64:
+            return list(atom("i64.extend_u/i32"_sv), expression);
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
+
+    case Type::U32:
+        switch (type_cast.type) {
+        case Type::U0:
+        case Type::U8:
+            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+        case Type::U32:
+            return expression;
+        case Type::U64:
+            return list(atom("i64.extend_u/i32"_sv), expression);
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
+
+    case Type::U64:
+        switch (type_cast.type) {
+        case Type::U0:
+        case Type::U8:
+        case Type::U32:
+            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+        case Type::U64:
+            return expression;
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
+
+    case Type::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
+        break;
     }
 
-    reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+
+    assert(0 && "This can only happen if the memory is corrupted");
+    return nullptr;
 }
 
 S_Expr *Wat_Compiler::compile_expression(Expression *expression)

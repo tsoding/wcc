@@ -10,6 +10,4 @@ enum class Type
     U64,
 };
 
-size_t size_of_type(Type type);
-
 #endif  // WCC_TYPES_HPP_

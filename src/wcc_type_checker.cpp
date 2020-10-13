@@ -62,16 +62,81 @@ Expression *Type_Checker::cast_expression_to(Expression *expression, Type type)
     return cast_expression;
 }
 
+bool is_expression_castable_to(Expression *expression, Type cast_type)
+{
+    switch (expression->type) {
+    case Type::U0:
+        switch (cast_type) {
+        case Type::U0:
+            return true;
+        case Type::U8:
+        case Type::U32:
+        case Type::U64:
+            return false;
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
+
+    case Type::U8:
+        switch (cast_type) {
+        case Type::U0:
+            return false;
+        case Type::U8:
+        case Type::U32:
+        case Type::U64:
+            return true;
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
+    case Type::U32:
+        switch (cast_type) {
+        case Type::U0:
+            return false;
+        case Type::U8:
+            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF;
+        case Type::U32:
+        case Type::U64:
+            return true;
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
+    case Type::U64:
+        switch (cast_type) {
+        case Type::U0:
+            return false;
+        case Type::U8:
+            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF;
+        case Type::U32:
+            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF'FF'FF'FF;
+        case Type::U64:
+            return true;
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
+
+    case Type::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
+        break;
+    }
+
+    assert(0 && "This can only happen if the memory is corrupted");
+    return false;
+}
+
 Expression *Type_Checker::try_implicitly_cast_expression_to(Expression *expression, Type cast_type)
 {
-    auto expression_type = expression->type;
-
-    if (cast_type != expression_type) {
-        if (size_of_type(cast_type) >= size_of_type(expression_type)) {
-            return cast_expression_to(expression, cast_type);
-        } else {
-            reporter.fail(expression->offset, "Expected type `", cast_type, "` but got `", expression_type, "`");
-        }
+    if (is_expression_castable_to(expression, cast_type)) {
+        return cast_expression_to(expression, cast_type);
+    } else {
+        reporter.fail(expression->offset, "Expression of type `", expression->type, "` is not convertable to `", cast_type, "`");
     }
 
     return expression;
@@ -140,7 +205,13 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
     } break;
 
     case Expression_Kind::Number_Literal: {
-        expression->type = Type::U32;
+        if (expression->number_literal.unwrap <= 0xFF) {
+            expression->type = Type::U8;
+        } else if (expression->number_literal.unwrap <= 0xFF'FF'FF'FF) {
+            expression->type = Type::U32;
+        } else {
+            expression->type = Type::U64;
+        }
     } break;
 
     case Expression_Kind::Variable: {
@@ -161,10 +232,12 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
         Type lhs_type = check_types_of_expression(expression->binary_op.lhs);
         Type rhs_type = check_types_of_expression(expression->binary_op.rhs);
 
-        if (size_of_type(lhs_type) < size_of_type(rhs_type)) {
-            expression->binary_op.lhs = try_implicitly_cast_expression_to(expression->binary_op.lhs, rhs_type);
-        } else {
+        if (is_expression_castable_to(expression->binary_op.lhs, rhs_type)) {
+            expression->binary_op.lhs = cast_expression_to(expression->binary_op.lhs, rhs_type);
+        } else if (is_expression_castable_to(expression->binary_op.lhs, lhs_type)) {
             expression->binary_op.rhs = try_implicitly_cast_expression_to(expression->binary_op.rhs, lhs_type);
+        } else {
+            reporter.fail(expression->binary_op.rhs->offset, "Types `", lhs_type, "` and `", rhs_type, "` are not comparable with each other");
         }
 
         expression->type = Type::U32; // @bool
