@@ -60,7 +60,7 @@ static_assert(binary_ops_count == binary_op_kinds_count);
 
 struct Number_Literal
 {
-    uint32_t unwrap;
+    uint64_t unwrap;
 };
 
 struct Variable
