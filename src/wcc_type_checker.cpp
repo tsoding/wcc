@@ -67,10 +67,7 @@ Expression *Type_Checker::try_implicitly_cast_expression_to(Expression *expressi
     auto expression_type = expression->type;
 
     if (cast_type != expression_type) {
-        if (kind_of_type(cast_type) == kind_of_type(expression_type) &&
-            is_kind_number(kind_of_type(cast_type)) &&
-            size_of_type(cast_type) >= size_of_type(expression_type))
-        {
+        if (size_of_type(cast_type) >= size_of_type(expression_type)) {
             return cast_expression_to(expression, cast_type);
         } else {
             reporter.fail(expression->offset, "Expected type `", cast_type, "` but got `", expression_type, "`");
@@ -156,14 +153,6 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
         Type lhs_type = check_types_of_expression(expression->binary_op.lhs);
         Type rhs_type = check_types_of_expression(expression->binary_op.rhs);
 
-        if (!is_kind_number(kind_of_type(lhs_type))) {
-            reporter.fail(expression->binary_op.lhs->offset, "Expected a number but got `", lhs_type, "`");
-        }
-
-        if (!is_kind_number(kind_of_type(rhs_type))) {
-            reporter.fail(expression->binary_op.lhs->offset, "Expected a number but got `", rhs_type, "`");
-        }
-
         expression->type = check_types(expression->binary_op.rhs->offset, lhs_type, rhs_type);
     } break;
 
@@ -171,14 +160,6 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
     case Expression_Kind::Greater: {
         Type lhs_type = check_types_of_expression(expression->binary_op.lhs);
         Type rhs_type = check_types_of_expression(expression->binary_op.rhs);
-
-        if (!is_kind_number(kind_of_type(lhs_type))) {
-            reporter.fail(expression->binary_op.lhs->offset, "Expected a number but got `", lhs_type, "`");
-        }
-
-        if (!is_kind_number(kind_of_type(rhs_type))) {
-            reporter.fail(expression->binary_op.lhs->offset, "Expected a number but got `", rhs_type, "`");
-        }
 
         if (size_of_type(lhs_type) < size_of_type(rhs_type)) {
             expression->binary_op.lhs = try_implicitly_cast_expression_to(expression->binary_op.lhs, rhs_type);
