@@ -112,14 +112,22 @@ S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
     assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly.");
 
     switch (plus.lhs->type) {
+    case Type::U0:
+        assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly. There is no plus operation defined for Type::U0");
+        break;
+    case Type::U8:
+        return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
     case Type::U32:
         return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
     case Type::U64:
         return list(atom("i64.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
-    default:
-        assert(0 && "Type Checking step didn't work correctly.");
-        return nullptr;
+    case Type::Unchecked:
+        assert(0 && "Type checking step didn't work correctly");
+        break;
     }
+
+    assert(0 && "Memory corruption?");
+    return nullptr;
 }
 
 S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
@@ -127,14 +135,21 @@ S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
     assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly.");
 
     switch (greater.lhs->type) {
+    case Type::U0:
+        assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly. There is no greater operation defined for Type::U0");
+    case Type::U8:
+        return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
     case Type::U32:
         return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
     case Type::U64:
         return list(atom("i64.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
-    default:
-        assert(0 && "Type Checking step didn't work correctly.");
-        return nullptr;
+    case Type::Unchecked:
+        assert(0 && "Type checking step didn't work correctly");
+        break;
     }
+
+    assert(0 && "Memory corruption?");
+    return nullptr;
 }
 
 S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
@@ -256,6 +271,15 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
         auto var_ident = wat_ident(statement.subtract_assignment.var_name);
 
         switch (statement.subtract_assignment.value->type) {
+        case Type::U0:
+            assert(0 && "Type checking step didn't work correctly. There is not -= operation defined for U0");
+            break;
+        case Type::U8:
+            return list(atom("set_local"_sv),
+                        var_ident,
+                        list(atom("i32.sub"_sv),
+                             list(atom("get_local"_sv), var_ident),
+                             compile_expression(statement.subtract_assignment.value)));
         case Type::U32:
             return list(atom("set_local"_sv),
                         var_ident,
@@ -268,10 +292,8 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
                         list(atom("i64.sub"_sv),
                              list(atom("get_local"_sv), var_ident),
                              compile_expression(statement.subtract_assignment.value)));
-
-        default:
-            assert(0 && "Type Checking step didn't work correctly.");
-            return nullptr;
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
         }
 
     }
