@@ -128,6 +128,28 @@ S_Expr *Wat_Compiler::compile_rem(Binary_Op rem)
     return nullptr;
 }
 
+S_Expr *Wat_Compiler::compile_minus(Binary_Op minus)
+{
+    assert(minus.lhs->type == minus.rhs->type && "Type Checking step didn't work correctly.");
+
+    switch (minus.lhs->type) {
+    case Type::U0:
+        assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for Type::U0");
+        break;
+    case Type::U8:
+    case Type::U32:
+        return list(atom("i32.sub"_sv), compile_expression(minus.lhs), compile_expression(minus.rhs));
+    case Type::U64:
+        return list(atom("i64.sub"_sv), compile_expression(minus.lhs), compile_expression(minus.rhs));
+    case Type::Unchecked:
+        assert(0 && "Type checking step didn't work correctly");
+        break;
+    }
+
+    assert(0 && "Memory corruption?");
+    return nullptr;
+}
+
 S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
 {
     assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly.");
@@ -250,6 +272,7 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
     case Expression_Kind::Rem:
         return compile_rem(expression->binary_op);
     case Expression_Kind::Minus:
+        return compile_minus(expression->binary_op);
     case Expression_Kind::And:
     case Expression_Kind::Less_Equals:
         reporter.fail(expression->offset, "Compilation of `", expression->kind, "` is not supported");
