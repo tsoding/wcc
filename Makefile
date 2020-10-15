@@ -20,8 +20,9 @@ test_fib: ./samples/test_fib.js ./samples/fib.wasm
 test_rot13_char: ./samples/test_rot13_char.js ./samples/rot13_char.wasm
 	node $(NODE_FLAGS) ./samples/test_rot13_char.js
 
+# TODO: ./samples/rot13_str.wasm does not compile
 .PHONY: samples
-samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm
+samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./samples/rot13_str.wasm
 
 ./samples/add.wasm: ./samples/add.wat
 	wat2wasm -o ./samples/add.wasm ./samples/add.wat
@@ -41,6 +42,12 @@ samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm
 ./samples/rot13_char.wat: ./samples/rot13_char.wc wcc
 	./wcc -t wat ./samples/rot13_char.wc > ./samples/rot13_char.wat
 
+./samples/rot13_str.wasm: ./samples/rot13_str.wat
+	wat2wasm -o ./samples/rot13_str.wasm ./samples/rot13_str.wat
+
+./samples/rot13_str.wat: ./samples/rot13_str.wc wcc
+	./wcc -t wat ./samples/rot13_str.wc > ./samples/rot13_str.wat
+
 .PHONY: help
 help:
 	@echo '  make                          build ./wcc executable of the compiler in the current dir'
@@ -49,8 +56,11 @@ help:
 	@echo '  make samples/add.wasm         build ./samples/add.wc sample'
 	@echo '  make samples/fib.wasm         build ./samples/fib.wc sample'
 	@echo '  make samples/rot13_char.wasm  build ./samples/rot13_char.wc sample'
+	@echo '  make samples/rot13_str.wasm   build ./samples/rot13_str.wc sample'
 	@echo 'Test:'
 	@echo '  make test                     run all of the tests'
 	@echo '  make test_add                 test ./samples/add.wc sample'
 	@echo '  make test_fib                 test ./samples/fib.wc sample'
 	@echo '  make test_rot13_char          test ./samples/rot13_char.wc sample'
+
+# TODO: GoL sample
