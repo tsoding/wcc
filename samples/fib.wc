@@ -1,6 +1,21 @@
 // NOTE: To test this sample just do `make test_fib` in the root of the project.
 // For more information do `make help`.
 
+// TODO: what if you define two functions within the same module?
+
+func fib_u8(n: u8): u8 {
+    local a: u8 = 0;
+    local b: u8 = 1;
+    local c: u8 = 0;
+    while (n > 0) {
+        c = a + b;
+        a = b;
+        b = c;
+        n -= 1;
+    }
+    a;
+}
+
 func fib_u32(n: u32): u32 {
     local a: u32 = 0;
     local b: u32 = 1;
@@ -26,5 +41,3 @@ func fib_u64(n: u64): u64 {
     }
     a;
 }
-
-// TODO: add fib_u8 sample

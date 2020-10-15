@@ -9,6 +9,7 @@ WebAssembly
     .then((wasm) => {
         const fibs = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55];
         for (let i = 0; i < fibs.length; ++i) {
+            assert.equal(wasm.instance.exports.fib_u8(i), fibs[i]);
             assert.equal(wasm.instance.exports.fib_u32(i), fibs[i]);
             assert.equal(wasm.instance.exports.fib_u64(BigInt(i)), fibs[i]);
         }
