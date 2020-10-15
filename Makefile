@@ -21,7 +21,8 @@ test_rot13_char: ./samples/test_rot13_char.js ./samples/rot13_char.wasm
 	node $(NODE_FLAGS) ./samples/test_rot13_char.js
 
 # TODO: there is not test coverage
-# TODO: ./samples/rot13_str.wasm does not compile
+# TODO: ./samples/rot13_str.wc does not compile
+# TODO: ./samples/primes.wc does not compile
 # TODO: utilize gnu make wildcards in the build
 .PHONY: samples
 samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./samples/prime.wasm # ./samples/rot13_str.wasm
