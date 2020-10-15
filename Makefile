@@ -65,3 +65,4 @@ help:
 	@echo '  make test_rot13_char          test ./samples/rot13_char.wc sample'
 
 # TODO: GoL sample
+# TODO: Prime numbers sample
