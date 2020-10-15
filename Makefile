@@ -6,7 +6,7 @@ wcc: $(wildcard src/*.cpp) $(wildcard src/*.hpp)
 	$(CXX) $(WCC_CXXFLAGS) -o wcc src/wcc.cpp $(WCC_LIBS)
 
 .PHONY: test
-test: test_add test_fib
+test: test_add test_fib test_rot13_char
 
 .PHONY: test_add
 test_add: ./samples/test_add.js ./samples/add.wasm
@@ -15,6 +15,10 @@ test_add: ./samples/test_add.js ./samples/add.wasm
 .PHONY: test_fib
 test_fib: ./samples/test_fib.js ./samples/fib.wasm
 	node $(NODE_FLAGS) ./samples/test_fib.js
+
+.PHONY: test_rot13_char
+test_rot13_char: ./samples/test_rot13_char.js ./samples/rot13_char.wasm
+	node $(NODE_FLAGS) ./samples/test_rot13_char.js
 
 .PHONY: samples
 samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm
@@ -49,3 +53,4 @@ help:
 	@echo '  make test                     run all of the tests'
 	@echo '  make test_add                 test ./samples/add.wc sample'
 	@echo '  make test_fib                 test ./samples/fib.wc sample'
+	@echo '  make test_rot13_char          test ./samples/rot13_char.wc sample'

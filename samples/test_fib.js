@@ -1,5 +1,5 @@
 // NOTE: to run this test just do `make test_fib` in the root of the project.
-// To run all the tests do `make test`
+// For more information do `make help`.
 
 const fs = require("fs");
 const assert = require("assert");
