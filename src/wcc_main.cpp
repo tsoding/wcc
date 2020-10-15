@@ -1,4 +1,5 @@
 // TODO: generating wasm directly is not supported
+// TODO: generating dot for ast is not supported
 enum class Target
 {
     Wat,
