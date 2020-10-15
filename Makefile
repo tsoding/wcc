@@ -1,4 +1,4 @@
-WCC_CXXFLAGS=-Wall -Werror -pedantic -std=c++17 -ggdb
+WCC_CXXFLAGS=-Wall -Werror -Wextra -pedantic -std=c++17 -ggdb
 WCC_LIBS=
 NODE_FLAGS=--unhandled-rejections=strict --experimental-wasm-bigint
 

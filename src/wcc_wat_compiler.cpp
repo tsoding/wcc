@@ -393,9 +393,9 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
                              compile_expression(statement.subtract_assignment.value)));
         case Type::Unchecked:
             assert(0 && "Unchecked type in a checked context");
+            break;
         }
-
-    }
+    } break;
     case Statement_Kind::Expression:
         return compile_expression(statement.expression);
     }
