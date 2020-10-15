@@ -1,7 +1,8 @@
 // NOTE: To test this sample just do `make test_fib` in the root of the project.
 // For more information do `make help`.
 
-// TODO: what if you define two functions within the same module?
+// TODO: compiler does not check for duplicate function definitions
+// TODO: compiler does not check for duplicate variable definitions
 
 func fib_u8(n: u8): u8 {
     local a: u8 = 0;
