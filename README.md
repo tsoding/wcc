@@ -50,3 +50,11 @@ For more info on how to use the build do
 ```console
 $ make help
 ```
+
+If you are on a platform where the supplied Makefile does not work, keep in mind that to just build the executable of the compile you can do
+
+```console
+$ g++ -Wall -Werror -Wextra -pedantic -std=c++17 -ggdb -o wcc src/wcc.cpp
+```
+
+Replace with an appropriate compiler. Majority of the stuff in the Makefile is for building and testing samples.
