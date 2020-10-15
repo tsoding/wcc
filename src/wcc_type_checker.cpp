@@ -127,7 +127,7 @@ bool is_expression_castable_to(Expression *expression, Type cast_type)
         break;
     }
 
-    assert(0 && "This can only happen if the memory is corrupted");
+    assert(0 && "Memory corruption?");
     return false;
 }
 
@@ -273,7 +273,7 @@ Type Type_Checker::check_types_of_statement(Statement *statement)
         return check_types_of_expression(statement->expression);
     }
 
-    assert(0 && "This can only happen if the memory is corrupted");
+    assert(0 && "Memory corruption?");
     return Type::Unchecked;
 }
 

@@ -172,6 +172,28 @@ S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
     return nullptr;
 }
 
+S_Expr *Wat_Compiler::compile_less_equals(Binary_Op less_equals)
+{
+    assert(less_equals.lhs->type == less_equals.rhs->type && "Type Checking step didn't work correctly.");
+
+    switch (less_equals.lhs->type) {
+    case Type::U0:
+        assert(0 && "Type Checking step didn't work correctly. There is no less_equals operation defined for Type::U0");
+    case Type::U8:
+        return list(atom("i32.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
+    case Type::U32:
+        return list(atom("i32.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
+    case Type::U64:
+        return list(atom("i64.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
+    case Type::Unchecked:
+        assert(0 && "Type checking step didn't work correctly");
+        break;
+    }
+
+    assert(0 && "Memory corruption?");
+    return nullptr;
+}
+
 S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
 {
     assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly.");
@@ -279,8 +301,7 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
         break;
     }
 
-
-    assert(0 && "This can only happen if the memory is corrupted");
+    assert(0 && "Memory corruption?");
     return nullptr;
 }
 
@@ -304,11 +325,10 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
     case Expression_Kind::And:
         return compile_and(expression->binary_op);
     case Expression_Kind::Less_Equals:
-        reporter.fail(expression->offset, "Compilation of `", expression->kind, "` is not supported");
-        return nullptr;
+        return compile_less_equals(expression->binary_op);
     }
 
-    assert(0 && "Unknown type of expression");
+    assert(0 && "Memory corruption?");
     return nullptr;
 }
 
