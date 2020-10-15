@@ -132,6 +132,7 @@ struct Subtract_Assignment
 struct Statement
 {
     Statement_Kind kind;
+    Type type;
     size_t offset;
     union
     {

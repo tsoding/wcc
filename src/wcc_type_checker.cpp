@@ -260,21 +260,26 @@ Type Type_Checker::check_types_of_statement(Statement *statement)
 {
     switch (statement->kind) {
     case Statement_Kind::Local_Var_Def:
-        return check_types_of_local_var_def(&statement->local_var_def);
+        statement->type = check_types_of_local_var_def(&statement->local_var_def);
+        break;
     case Statement_Kind::While:
-        return check_types_of_while(&statement->hwile);
+        statement->type = check_types_of_while(&statement->hwile);
+        break;
     case Statement_Kind::If:
-        return check_types_of_if(&statement->iph);
+        statement->type = check_types_of_if(&statement->iph);
+        break;
     case Statement_Kind::Assignment:
-        return check_types_of_assignment(&statement->assignment);
+        statement->type = check_types_of_assignment(&statement->assignment);
+        break;
     case Statement_Kind::Subtract_Assignment:
-        return check_types_of_subtract_assignment(&statement->subtract_assignment);
+        statement->type = check_types_of_subtract_assignment(&statement->subtract_assignment);
+        break;
     case Statement_Kind::Expression:
-        return check_types_of_expression(statement->expression);
+        statement->type = check_types_of_expression(statement->expression);
+        break;
     }
 
-    assert(0 && "Memory corruption?");
-    return Type::Unchecked;
+    return statement->type;
 }
 
 Type Type_Checker::check_types_of_block(Block *block)

@@ -17,7 +17,6 @@ test_fib: ./samples/test_fib.js ./samples/fib.wasm
 	node $(NODE_FLAGS) ./samples/test_fib.js
 
 .PHONY: samples
-# TODO: rot13_char.wc sample is not compilable
 samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm
 
 ./samples/add.wasm: ./samples/add.wat

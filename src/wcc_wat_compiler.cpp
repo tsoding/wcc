@@ -339,22 +339,14 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
         reporter.fail(statement.offset, "TODO: Local variable definitions are only allowed at the beginning of the function");
         break;
     case Statement_Kind::If:
-        // (block
-        //  (block
-        //   (br_if 0 (i32.eqz <condition>))
-        //   <body>
-        //   (br 1))
-        //  (block))
+        //  (if (result <type>)
+        //    (then <then-branch>)
+        //    (else (else-branch)))
         return list(
-            atom("block"_sv),
-            append(
-                list(atom("block"_sv),
-                     list(atom("br_if"_sv), atom(0), list(atom("i32.eqz"_sv), compile_expression(statement.iph.condition)))),
-                compile_block(statement.iph.then),
-                list(list(atom("br"_sv), atom(1)))),
-            append(
-                list(atom("block"_sv)),
-                compile_block(statement.iph.elze)));
+            atom("if"_sv), list(atom("result"_sv), wat_name_of_type(statement.type)),
+            compile_expression(statement.iph.condition),
+            append(list(atom("then"_sv)), compile_block(statement.iph.then)),
+            append(list(atom("else"_sv)), compile_block(statement.iph.elze)));
     case Statement_Kind::While:
         // (block
         //  (loop
