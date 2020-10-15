@@ -129,6 +129,7 @@ struct Wat_Compiler
     S_Expr *compile_plus(Binary_Op plus);
     S_Expr *compile_minus(Binary_Op minus);
     S_Expr *compile_greater(Binary_Op greater);
+    S_Expr *compile_and(Binary_Op andd);
     S_Expr *compile_expression(Expression *expression);
     S_Expr *compile_statement(Statement statement);
     S_Expr *compile_block(Block *block);

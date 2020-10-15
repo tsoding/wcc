@@ -194,6 +194,34 @@ S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
     return nullptr;
 }
 
+S_Expr *Wat_Compiler::compile_and(Binary_Op andd)
+{
+    assert(andd.lhs->type == andd.rhs->type && "Type Checking step didn't work correctly.");
+
+    switch (andd.lhs->type) {
+    case Type::U0:
+        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U0");
+        break;
+    case Type::U64:
+        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U64");
+        break;
+    case Type::U8:
+        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U8");
+        break;
+    case Type::U32:
+        // NOTE: this is a logical and so it should only work for
+        // @bool. Right now we don't have any @bool so u32 is a
+        // replacement for @bool.
+        return list(atom("i32.and"_sv), compile_expression(andd.lhs), compile_expression(andd.rhs));
+    case Type::Unchecked:
+        assert(0 && "Type checking step didn't work correctly");
+        break;
+    }
+
+    assert(0 && "Memory corruption?");
+    return nullptr;
+}
+
 S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
 {
     auto expression = compile_expression(type_cast.expression);
@@ -274,6 +302,7 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
     case Expression_Kind::Minus:
         return compile_minus(expression->binary_op);
     case Expression_Kind::And:
+        return compile_and(expression->binary_op);
     case Expression_Kind::Less_Equals:
         reporter.fail(expression->offset, "Compilation of `", expression->kind, "` is not supported");
         return nullptr;
