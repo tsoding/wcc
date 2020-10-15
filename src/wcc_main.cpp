@@ -26,11 +26,12 @@ Maybe<Target> target_by_name(String_View name)
 
 void usage(FILE *stream)
 {
-    println(stream, "Usage: ./wcc [--target|-t <target>] <input.wc>");
+    println(stream, "Usage: ./wcc [OPTIONS] <input.wc>");
+    println(stream, "OPTIONS:");
     println(stream, "    --target|-t <target>     Generate code for a specific target.");
     println(stream, "                             Available targets: wat, ast, tokens.");
     println(stream, "                             Default target: wat.");
-    // TODO: --help flag is not supported
+    println(stream, "    --help|-h                Print this help to stdout and exit with 0 exit code.");
     // TODO: output to a specific file is not supported (flag -o)
 }
 
@@ -41,8 +42,14 @@ int main(int argc, char *argv[])
     Args args = {argc, argv};
     args.shift();
 
-    while (args.argc > 1) {
-        String_View flag = cstr_as_string_view(args.shift());
+    while (args.argc > 0) {
+        String_View flag = cstr_as_string_view(*args.argv);
+
+        if (!flag.has_prefix("-"_sv)) {
+            break;
+        }
+
+        args.shift();
 
         if (flag == "--target"_sv || flag == "-t"_sv) {
             if (args.empty()) {
@@ -60,6 +67,9 @@ int main(int argc, char *argv[])
             }
 
             target = custom_target.unwrap;
+        } else if (flag == "--help"_sv || flag == "-h"_sv) {
+            usage(stdout);
+            exit(0);
         } else {
             usage(stderr);
             println(stderr, "ERROR: Unknown flag `", flag, "`");
