@@ -1,31 +1,29 @@
 WCC_CXXFLAGS=-Wall -Werror -Wextra -pedantic -std=c++17 -ggdb
 WCC_LIBS=
 NODE_FLAGS=--unhandled-rejections=strict --experimental-wasm-bigint
+# TODO: there is not test coverage
+TESTS=test_add test_fib test_rot13_char
+# TODO: ./samples/rot13_str.wc does not compile
+# TODO: ./samples/primes.wc does not compile
+SAMPLES=./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm # ./samples/prime.wasm # ./samples/rot13_str.wasm
 
 wcc: $(wildcard src/*.cpp) $(wildcard src/*.hpp)
 	$(CXX) $(WCC_CXXFLAGS) -o wcc src/wcc.cpp $(WCC_LIBS)
 
-.PHONY: test
-test: test_add test_fib test_rot13_char
+.PHONY: test $(TESTS)
+test: $(TESTS)
 
-.PHONY: test_add
 test_add: ./samples/test_add.js ./samples/add.wasm
 	node $(NODE_FLAGS) ./samples/test_add.js
 
-.PHONY: test_fib
 test_fib: ./samples/test_fib.js ./samples/fib.wasm
 	node $(NODE_FLAGS) ./samples/test_fib.js
 
-.PHONY: test_rot13_char
 test_rot13_char: ./samples/test_rot13_char.js ./samples/rot13_char.wasm
 	node $(NODE_FLAGS) ./samples/test_rot13_char.js
 
-# TODO: there is not test coverage
-# TODO: ./samples/rot13_str.wc does not compile
-# TODO: ./samples/primes.wc does not compile
-# TODO: utilize gnu make wildcards in the build
 .PHONY: samples
-samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm # ./samples/prime.wasm # ./samples/rot13_str.wasm
+samples: $(SAMPLES)
 
 ./samples/%.wasm: ./samples/%.wat
 	wat2wasm -o $@ $<
