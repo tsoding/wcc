@@ -1,7 +1,7 @@
 WCC_CXXFLAGS=-Wall -Werror -Wextra -pedantic -std=c++17 -ggdb
 WCC_LIBS=
 NODE_FLAGS=--unhandled-rejections=strict --experimental-wasm-bigint
-# TODO: there is not test coverage
+# TODO: there is no test coverage
 TESTS=test_add test_fib test_rot13_char
 # TODO: ./samples/rot13_str.wc does not compile
 # TODO: ./samples/primes.wc does not compile
