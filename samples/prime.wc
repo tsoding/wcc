@@ -1,0 +1,10 @@
+func is_prime(x: u32): u32 {
+	local i: u32 = 2;
+	while (i * i <= x) {
+		// if (x % i == 0) {
+		// 	// @bool
+		// 	return 0;
+		// }
+	}
+	1;
+}

@@ -150,6 +150,28 @@ S_Expr *Wat_Compiler::compile_minus(Binary_Op minus)
     return nullptr;
 }
 
+S_Expr *Wat_Compiler::compile_multiply(Binary_Op multiply)
+{
+    assert(multiply.lhs->type == multiply.rhs->type && "Type Checking step didn't work correctly.");
+
+    switch (multiply.lhs->type) {
+    case Type::U0:
+        assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for Type::U0");
+        break;
+    case Type::U8:
+    case Type::U32:
+        return list(atom("i32.mul"_sv), compile_expression(multiply.lhs), compile_expression(multiply.rhs));
+    case Type::U64:
+        return list(atom("i64.mul"_sv), compile_expression(multiply.lhs), compile_expression(multiply.rhs));
+    case Type::Unchecked:
+        assert(0 && "Type checking step didn't work correctly");
+        break;
+    }
+
+    assert(0 && "Memory corruption?");
+    return nullptr;
+}
+
 S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
 {
     assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly.");
@@ -316,6 +338,8 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
         return compile_variable(expression->variable);
     case Expression_Kind::Plus:
         return compile_plus(expression->binary_op);
+    case Expression_Kind::Multiply:
+        return compile_multiply(expression->binary_op);
     case Expression_Kind::Greater:
         return compile_greater(expression->binary_op);
     case Expression_Kind::Rem:

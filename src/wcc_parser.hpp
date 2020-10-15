@@ -32,6 +32,7 @@ enum class Expression_Kind
     Minus,
     Rem,
     And,
+    Multiply,
 };
 
 void print1(FILE *stream, Expression_Kind expression_kind);
@@ -43,6 +44,7 @@ const Token_Type binary_ops[] = {
     Token_Type::Plus,
     Token_Type::Minus,
     Token_Type::Rem,
+    Token_Type::Asterisk,
 };
 const size_t binary_ops_count = sizeof(binary_ops) / sizeof(binary_ops[0]);
 
@@ -53,6 +55,7 @@ const Expression_Kind binary_op_kinds[] = {
     Expression_Kind::Plus,
     Expression_Kind::Minus,
     Expression_Kind::Rem,
+    Expression_Kind::Multiply,
 };
 const size_t binary_op_kinds_count = sizeof(binary_op_kinds) / sizeof(binary_op_kinds[0]);
 

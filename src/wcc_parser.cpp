@@ -46,6 +46,9 @@ void print1(FILE *stream, Expression_Kind expression_kind)
     case Expression_Kind::And:
         print(stream, "And");
         break;
+    case Expression_Kind::Multiply:
+        print(stream, "Multiply");
+        break;
     }
 }
 
@@ -63,6 +66,9 @@ void print1(FILE *stream, Expression expression)
         break;
     case Expression_Kind::Plus:
         print(stream, "(+ ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
+        break;
+    case Expression_Kind::Multiply:
+        print(stream, "(* ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
         break;
     case Expression_Kind::Minus:
         print(stream, "(- ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");

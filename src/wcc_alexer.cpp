@@ -25,6 +25,7 @@ void print1(FILE *stream, Token_Type type)
     case Token_Type::Rem: print(stream, "Rem"); break;
     case Token_Type::If: print(stream, "If"); break;
     case Token_Type::Else: print(stream, "Else"); break;
+    case Token_Type::Asterisk: print(stream, "Asterisk"); break;
     }
 }
 
@@ -129,6 +130,9 @@ void Alexer::tokenize()
                 break;
             case '+':
                 tokens.push(Token {Token_Type::Plus, chop_off(&source, 1)});
+                break;
+            case '*':
+                tokens.push(Token {Token_Type::Asterisk, chop_off(&source, 1)});
                 break;
             case '/':
                 if (source.count > 1 && source.data[1] == '/') {

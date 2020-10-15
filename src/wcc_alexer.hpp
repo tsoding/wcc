@@ -26,7 +26,8 @@ enum class Token_Type
     And,
     Rem,
     If,
-    Else
+    Else,
+    Asterisk
 };
 
 void print1(FILE *stream, Token_Type type);

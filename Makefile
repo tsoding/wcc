@@ -22,8 +22,9 @@ test_rot13_char: ./samples/test_rot13_char.js ./samples/rot13_char.wasm
 
 # TODO: there is not test coverage
 # TODO: ./samples/rot13_str.wasm does not compile
+# TODO: utilize gnu make wildcards in the build
 .PHONY: samples
-samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./samples/rot13_str.wasm
+samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./samples/prime.wasm # ./samples/rot13_str.wasm
 
 ./samples/add.wasm: ./samples/add.wat
 	wat2wasm -o ./samples/add.wasm ./samples/add.wat
@@ -36,6 +37,12 @@ samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./sampl
 
 ./samples/fib.wat: ./samples/fib.wc wcc
 	./wcc -t wat ./samples/fib.wc > ./samples/fib.wat
+
+./samples/prime.wasm: ./samples/prime.wat
+	wat2wasm -o ./samples/prime.wasm ./samples/prime.wat
+
+./samples/prime.wat: ./samples/prime.wc wcc
+	./wcc -t wat ./samples/prime.wc > ./samples/prime.wat
 
 ./samples/rot13_char.wasm: ./samples/rot13_char.wat
 	wat2wasm -o ./samples/rot13_char.wasm ./samples/rot13_char.wat
@@ -65,4 +72,4 @@ help:
 	@echo '  make test_rot13_char          test ./samples/rot13_char.wc sample'
 
 # TODO: GoL sample
-# TODO: Prime numbers sample
+# TODO: Sample for https://en.wikipedia.org/wiki/Trial_division

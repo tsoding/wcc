@@ -218,6 +218,7 @@ Type Type_Checker::check_types_of_expression(Expression *expression)
         expression->type = type_of_name(expression->offset, expression->variable.name);
     } break;
 
+    case Expression_Kind::Multiply:
     case Expression_Kind::Rem:
     case Expression_Kind::Minus:
     case Expression_Kind::Plus: {
