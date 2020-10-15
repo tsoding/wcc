@@ -51,7 +51,7 @@ For more info on how to use the build do
 $ make help
 ```
 
-If you are on a platform where the supplied Makefile does not work, keep in mind that to just build the executable of the compile you can do
+If you are on a platform where the supplied Makefile does not work, keep in mind that to just build the executable of the compiler you can do
 
 ```console
 $ g++ -Wall -Werror -Wextra -pedantic -std=c++17 -ggdb -o wcc src/wcc.cpp
