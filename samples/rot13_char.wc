@@ -1,7 +1,12 @@
+// NOTE: To test this sample just do `make test_fib` in the root of the project.
+// For more information do `make help`.
+
 func rot13_char(x: u8): u8 {
     if (65 <= x && x <= 90) {
+        // cypher any letters
         (x - 65 + 13) % 26 + 65;
     } else {
+        // if the char is outside of range of letters simply do not cypher it
         x;
     }
 }

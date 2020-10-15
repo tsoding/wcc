@@ -44,8 +44,6 @@ struct Result
     const char *message;
 };
 
-// TODO: alexer does not support comments
-
 struct Alexer
 {
     String_View input;

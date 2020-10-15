@@ -1,3 +1,6 @@
+// NOTE: To test this sample just do `make test_fib` in the root of the project.
+// For more information do `make help`.
+
 func fib_u32(n: u32): u32 {
     local a: u32 = 0;
     local b: u32 = 1;
@@ -23,3 +26,5 @@ func fib_u64(n: u64): u64 {
     }
     a;
 }
+
+// TODO: add fib_u8 sample

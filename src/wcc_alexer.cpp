@@ -49,6 +49,11 @@ String_View chop_off(String_View *s, size_t n)
     return result;
 }
 
+bool is_not_newline(char x)
+{
+    return x != '\n';
+}
+
 bool is_symbol_start(char x)
 {
     return isalpha(x) || x == '_';
@@ -109,14 +114,14 @@ void Alexer::tokenize()
                 if (source.count > 1 && source.data[1] == '=') {
                     tokens.push(Token {Token_Type::Less_Equals, chop_off(&source, 2)});
                 } else {
-                   reporter.fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
+                    reporter.fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
                 }
                 break;
             case '&':
                 if (source.count > 1 && source.data[1] == '&') {
                     tokens.push(Token {Token_Type::And, chop_off(&source, 2)});
                 } else {
-                   reporter.fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
+                    reporter.fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
                 }
                 break;
             case ',':
@@ -124,6 +129,13 @@ void Alexer::tokenize()
                 break;
             case '+':
                 tokens.push(Token {Token_Type::Plus, chop_off(&source, 1)});
+                break;
+            case '/':
+                if (source.count > 1 && source.data[1] == '/') {
+                    chop_while(&source, is_not_newline);
+                } else {
+                    reporter.fail(static_cast<size_t>(source.data - input.data), "Unexpected character `", *source.data, "`");
+                }
                 break;
             case '%':
                 tokens.push(Token {Token_Type::Rem, chop_off(&source, 1)});

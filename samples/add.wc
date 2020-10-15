@@ -1,3 +1,8 @@
+// NOTE: To test this sample just do `make test_add` in the root of the project.
+// For more information do `make help`.
+
+// TODO: add add_u8 sample
+
 func add_u32(a: u32, b: u32): u32 {
      a + b;
 }
