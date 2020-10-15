@@ -25,37 +25,13 @@ test_rot13_char: ./samples/test_rot13_char.js ./samples/rot13_char.wasm
 # TODO: ./samples/primes.wc does not compile
 # TODO: utilize gnu make wildcards in the build
 .PHONY: samples
-samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./samples/prime.wasm # ./samples/rot13_str.wasm
+samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm # ./samples/prime.wasm # ./samples/rot13_str.wasm
 
-./samples/add.wasm: ./samples/add.wat
-	wat2wasm -o ./samples/add.wasm ./samples/add.wat
+./samples/%.wasm: ./samples/%.wat
+	wat2wasm -o $@ $<
 
-./samples/add.wat: ./samples/add.wc wcc
-	./wcc -t wat ./samples/add.wc > ./samples/add.wat
-
-./samples/fib.wasm: ./samples/fib.wat
-	wat2wasm -o ./samples/fib.wasm ./samples/fib.wat
-
-./samples/fib.wat: ./samples/fib.wc wcc
-	./wcc -t wat ./samples/fib.wc > ./samples/fib.wat
-
-./samples/prime.wasm: ./samples/prime.wat
-	wat2wasm -o ./samples/prime.wasm ./samples/prime.wat
-
-./samples/prime.wat: ./samples/prime.wc wcc
-	./wcc -t wat ./samples/prime.wc > ./samples/prime.wat
-
-./samples/rot13_char.wasm: ./samples/rot13_char.wat
-	wat2wasm -o ./samples/rot13_char.wasm ./samples/rot13_char.wat
-
-./samples/rot13_char.wat: ./samples/rot13_char.wc wcc
-	./wcc -t wat ./samples/rot13_char.wc > ./samples/rot13_char.wat
-
-./samples/rot13_str.wasm: ./samples/rot13_str.wat
-	wat2wasm -o ./samples/rot13_str.wasm ./samples/rot13_str.wat
-
-./samples/rot13_str.wat: ./samples/rot13_str.wc wcc
-	./wcc -t wat ./samples/rot13_str.wc > ./samples/rot13_str.wat
+./samples/%.wat: ./samples/%.wc wcc
+	./wcc -t wat $< > $@
 
 .PHONY: help
 help:
