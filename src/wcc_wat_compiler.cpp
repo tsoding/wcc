@@ -107,16 +107,36 @@ S_Expr *Wat_Compiler::compile_variable(Variable variable)
     return list(atom("get_local"_sv), wat_ident(variable.name));
 }
 
+S_Expr *Wat_Compiler::compile_rem(Binary_Op rem)
+{
+    assert(rem.lhs->type == rem.rhs->type && "Type Checking step didn't work correctly.");
+    switch (rem.lhs->type) {
+    case Type::U0:
+        assert(0 && "Type checking did not work correctly. There is no Rem operation defined for Type::U0");
+        break;
+    case Type::U8:
+    case Type::U32:
+        return list(atom("i32.rem_u"_sv), compile_expression(rem.lhs), compile_expression(rem.rhs));
+    case Type::U64:
+        return list(atom("i64.rem_u"_sv), compile_expression(rem.lhs), compile_expression(rem.rhs));
+    case Type::Unchecked:
+        assert(0 && "Type checking step didn't work correctly");
+        break;
+    }
+
+    assert(0 && "Memory corruption?");
+    return nullptr;
+}
+
 S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
 {
     assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly.");
 
     switch (plus.lhs->type) {
     case Type::U0:
-        assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly. There is no plus operation defined for Type::U0");
+        assert(0 && "Type Checking step didn't work correctly. There is no plus operation defined for Type::U0");
         break;
     case Type::U8:
-        return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
     case Type::U32:
         return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
     case Type::U64:
@@ -136,7 +156,7 @@ S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
 
     switch (greater.lhs->type) {
     case Type::U0:
-        assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly. There is no greater operation defined for Type::U0");
+        assert(0 && "Type Checking step didn't work correctly. There is no greater operation defined for Type::U0");
     case Type::U8:
         return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
     case Type::U32:
@@ -227,8 +247,9 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
         return compile_plus(expression->binary_op);
     case Expression_Kind::Greater:
         return compile_greater(expression->binary_op);
-    case Expression_Kind::Minus:
     case Expression_Kind::Rem:
+        return compile_rem(expression->binary_op);
+    case Expression_Kind::Minus:
     case Expression_Kind::And:
     case Expression_Kind::Less_Equals:
         reporter.fail(expression->offset, "Compilation of `", expression->kind, "` is not supported");
@@ -246,8 +267,22 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
         reporter.fail(statement.offset, "TODO: Local variable definitions are only allowed at the beginning of the function");
         break;
     case Statement_Kind::If:
-        assert(0 && "TODO: compilation of if is not implemented yet");
-        break;
+        // (block
+        //  (block
+        //   (br_if 0 (i32.eqz <condition>))
+        //   <body>
+        //   (br 1))
+        //  (block))
+        return list(
+            atom("block"_sv),
+            append(
+                list(atom("block"_sv),
+                     list(atom("br_if"_sv), atom(0), list(atom("i32.eqz"_sv), compile_expression(statement.iph.condition)))),
+                compile_block(statement.iph.then),
+                list(list(atom("br"_sv), atom(1)))),
+            append(
+                list(atom("block"_sv)),
+                compile_block(statement.iph.elze)));
     case Statement_Kind::While:
         // (block
         //  (loop
