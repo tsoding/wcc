@@ -20,6 +20,7 @@ test_fib: ./samples/test_fib.js ./samples/fib.wasm
 test_rot13_char: ./samples/test_rot13_char.js ./samples/rot13_char.wasm
 	node $(NODE_FLAGS) ./samples/test_rot13_char.js
 
+# TODO: there is not test coverage
 # TODO: ./samples/rot13_str.wasm does not compile
 .PHONY: samples
 samples: ./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./samples/rot13_str.wasm
