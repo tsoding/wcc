@@ -25,17 +25,16 @@ struct Type_Checker
 
     Expression *cast_expression_to(Expression *expression, Type type);
     Expression *try_implicitly_cast_expression_to(Expression *expression, Type cast_type);
-    Type check_types(size_t offset, Type expected_type, Type actual_type);
 
-    Type check_types_of_local_var_def(Local_Var_Def *local_var_def);
-    Type check_types_of_while(While *hwile);
-    Type check_types_of_if(If *iph);
-    Type check_types_of_assignment(Assignment *assignment);
-    Type check_types_of_subtract_assignment(Subtract_Assignment *subtract_assignment);
-    Type check_types_of_expression(Expression *expression);
+    void check_types_of_local_var_def(Local_Var_Def *local_var_def, Type expected_type);
+    void check_types_of_while(While *hwile, Type expected_type);
+    void check_types_of_if(If *iph, Type expected_type);
+    void check_types_of_assignment(Assignment *assignment, Type expected_type);
+    void check_types_of_subtract_assignment(Subtract_Assignment *subtract_assignment, Type expected_type);
+    Expression *check_types_of_expression(Expression *expression);
 
-    Type check_types_of_statement(Statement *statement);
-    Type check_types_of_block(Block *block);
+    void check_types_of_statement(Statement *statement, Type expected_type);
+    void check_types_of_block(Block *block, Type expected_type);
     void check_types_of_func_def(Func_Def *func_def);
     void check_types_of_module(Module *module);
 };
