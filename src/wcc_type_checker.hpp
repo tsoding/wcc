@@ -34,7 +34,7 @@ struct Type_Checker
     Expression *check_types_of_expression(Expression *expression);
 
     void check_types_of_statement(Statement *statement, Type expected_type);
-    void check_types_of_block(Block *block, Type expected_type);
+    void check_types_of_block(size_t offset, Block *block, Type expected_type);
     void check_types_of_func_def(Func_Def *func_def);
     void check_types_of_module(Module *module);
 };

@@ -15,6 +15,7 @@ enum class Token_Type
     Closed_Curly,
     Local,
     Equals,
+    Equals_Equals,
     Number_Literal,
     While,
     Greater,

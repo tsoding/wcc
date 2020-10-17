@@ -33,12 +33,14 @@ enum class Expression_Kind
     Rem,
     And,
     Multiply,
+    Equals,
 };
 
 void print1(FILE *stream, Expression_Kind expression_kind);
 
 const Token_Type binary_ops[] = {
     Token_Type::And,
+    Token_Type::Equals_Equals,
     Token_Type::Less_Equals,
     Token_Type::Greater,
     Token_Type::Plus,
@@ -50,6 +52,7 @@ const size_t binary_ops_count = sizeof(binary_ops) / sizeof(binary_ops[0]);
 
 const Expression_Kind binary_op_kinds[] = {
     Expression_Kind::And,
+    Expression_Kind::Equals,
     Expression_Kind::Less_Equals,
     Expression_Kind::Greater,
     Expression_Kind::Plus,

@@ -216,6 +216,28 @@ S_Expr *Wat_Compiler::compile_less_equals(Binary_Op less_equals)
     return nullptr;
 }
 
+S_Expr *Wat_Compiler::compile_equals(Binary_Op equals)
+{
+    assert(equals.lhs->type == equals.rhs->type && "Type Checking step didn't work correctly.");
+
+    switch (equals.lhs->type) {
+    case Type::U0:
+        assert(0 && "Type Checking step didn't work correctly. There is no equals operation defined for Type::U0");
+    case Type::U8:
+        return list(atom("i32.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
+    case Type::U32:
+        return list(atom("i32.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
+    case Type::U64:
+        return list(atom("i64.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
+    case Type::Unchecked:
+        assert(0 && "Type checking step didn't work correctly");
+        break;
+    }
+
+    assert(0 && "Memory corruption?");
+    return nullptr;
+}
+
 S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
 {
     assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly.");
@@ -277,7 +299,7 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
     case Type::U8:
         switch (type_cast.type) {
         case Type::U0:
-            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+            return list(atom("drop"_sv), expression);
         case Type::U8:
         case Type::U32:
             return expression;
@@ -292,6 +314,7 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
     case Type::U32:
         switch (type_cast.type) {
         case Type::U0:
+            return list(atom("drop"_sv), expression);
         case Type::U8:
             reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
         case Type::U32:
@@ -307,6 +330,7 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
     case Type::U64:
         switch (type_cast.type) {
         case Type::U0:
+            return list(atom("drop"_sv), expression);
         case Type::U8:
         case Type::U32:
             reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
@@ -350,6 +374,8 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
         return compile_and(expression->binary_op);
     case Expression_Kind::Less_Equals:
         return compile_less_equals(expression->binary_op);
+    case Expression_Kind::Equals:
+        return compile_equals(expression->binary_op);
     }
 
     assert(0 && "Memory corruption?");
@@ -363,14 +389,26 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
         reporter.fail(statement.offset, "TODO: Local variable definitions are only allowed at the beginning of the function");
         break;
     case Statement_Kind::If:
-        //  (if (result <type>)
-        //    (then <then-branch>)
-        //    (else (else-branch)))
-        return list(
-            atom("if"_sv), list(atom("result"_sv), wat_name_of_type(statement.type)),
-            compile_expression(statement.iph.condition),
-            append(list(atom("then"_sv)), compile_block(statement.iph.then)),
-            append(list(atom("else"_sv)), compile_block(statement.iph.elze)));
+        if (statement.iph.then == nullptr && statement.iph.elze == nullptr) {
+            return list(atom("drop"_sv), compile_expression(statement.iph.condition));
+        } else {
+            //  (if (result <type>)
+            //    (then <then-branch>)
+            //    (else (else-branch)))
+            if (statement.type == Type::U0) {
+                return list(
+                    atom("if"_sv),
+                    compile_expression(statement.iph.condition),
+                    append(list(atom("then"_sv)), compile_block(statement.iph.then)),
+                    append(list(atom("else"_sv)), compile_block(statement.iph.elze)));
+            } else {
+                return list(
+                    atom("if"_sv), list(atom("result"_sv), wat_name_of_type(statement.type)),
+                    compile_expression(statement.iph.condition),
+                    append(list(atom("then"_sv)), compile_block(statement.iph.then)),
+                    append(list(atom("else"_sv)), compile_block(statement.iph.elze)));
+            }
+        }
     case Statement_Kind::While:
         // (block
         //  (loop

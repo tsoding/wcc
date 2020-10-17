@@ -26,6 +26,7 @@ void print1(FILE *stream, Token_Type type)
     case Token_Type::If: print(stream, "If"); break;
     case Token_Type::Else: print(stream, "Else"); break;
     case Token_Type::Asterisk: print(stream, "Asterisk"); break;
+    case Token_Type::Equals_Equals: print(stream, "Equals_Equals"); break;
     }
 }
 
@@ -106,7 +107,11 @@ void Alexer::tokenize()
                 tokens.push(Token {Token_Type::Closed_Curly, chop_off(&source, 1)});
                 break;
             case '=':
-                tokens.push(Token {Token_Type::Equals, chop_off(&source, 1)});
+                if (source.count > 1 && source.data[1] == '=') {
+                    tokens.push(Token {Token_Type::Equals_Equals, chop_off(&source, 2)});
+                } else {
+                    tokens.push(Token {Token_Type::Equals, chop_off(&source, 1)});
+                }
                 break;
             case '>':
                 tokens.push(Token {Token_Type::Greater, chop_off(&source, 1)});

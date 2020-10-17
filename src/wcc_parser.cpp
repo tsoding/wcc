@@ -49,6 +49,9 @@ void print1(FILE *stream, Expression_Kind expression_kind)
     case Expression_Kind::Multiply:
         print(stream, "Multiply");
         break;
+    case Expression_Kind::Equals:
+        print(stream, "Equals");
+        break;
     }
 }
 
@@ -85,6 +88,8 @@ void print1(FILE *stream, Expression expression)
     case Expression_Kind::Less_Equals:
         print(stream, "(<= ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
         break;
+    case Expression_Kind::Equals:
+        print(stream, "(== ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
     }
 }
 

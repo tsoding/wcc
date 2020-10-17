@@ -73,7 +73,7 @@ bool is_expression_castable_to(Expression *expression, Type cast_type)
     case Type::U8:
         switch (cast_type) {
         case Type::U0:
-            return false;
+            return true;
         case Type::U8:
         case Type::U32:
         case Type::U64:
@@ -86,7 +86,7 @@ bool is_expression_castable_to(Expression *expression, Type cast_type)
     case Type::U32:
         switch (cast_type) {
         case Type::U0:
-            return false;
+            return true;
         case Type::U8:
             return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF;
         case Type::U32:
@@ -100,7 +100,7 @@ bool is_expression_castable_to(Expression *expression, Type cast_type)
     case Type::U64:
         switch (cast_type) {
         case Type::U0:
-            return false;
+            return true;
         case Type::U8:
             return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF;
         case Type::U32:
@@ -155,7 +155,8 @@ void Type_Checker::check_types_of_while(While *hwile, Type expected_type)
     hwile->condition = try_implicitly_cast_expression_to(
         check_types_of_expression(hwile->condition),
         Type::U32);
-    check_types_of_block(hwile->body, Type::U0);
+    // TODO: use offset of the hwile body itself instead of its condition
+    check_types_of_block(hwile->condition->offset, hwile->body, Type::U0);
 
     const auto TYPE_OF_WHILE = Type::U0;
     if (expected_type != TYPE_OF_WHILE) {
@@ -170,8 +171,9 @@ void Type_Checker::check_types_of_if(If *iph, Type expected_type)
     iph->condition = try_implicitly_cast_expression_to(
         check_types_of_expression(iph->condition),
         Type::U32);
-    check_types_of_block(iph->then, expected_type);
-    check_types_of_block(iph->elze, expected_type);
+    // TODO: use offsets of the `then` and `else` blocks themselves instead of the if condition
+    check_types_of_block(iph->condition->offset, iph->then, expected_type);
+    check_types_of_block(iph->condition->offset, iph->elze, expected_type);
 }
 
 void Type_Checker::check_types_of_assignment(Assignment *assignment, Type expected_type)
@@ -252,6 +254,7 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
         }
     } break;
 
+    case Expression_Kind::Equals:
     case Expression_Kind::Less_Equals:
     case Expression_Kind::Greater: {
         expression->binary_op.lhs = check_types_of_expression(expression->binary_op.lhs);
@@ -311,9 +314,17 @@ void Type_Checker::check_types_of_statement(Statement *statement, Type expected_
     statement->type = expected_type;
 }
 
-void Type_Checker::check_types_of_block(Block *block, Type expected_type)
+void Type_Checker::check_types_of_block(size_t offset, Block *block, Type expected_type)
 {
     push_scope();
+
+    if (!block) {
+        const Type TYPE_OF_EMPTY_BLOCK = Type::U0;
+        if (expected_type != TYPE_OF_EMPTY_BLOCK) {
+            reporter.fail(offset, "Expected type `", expected_type, "` but empty block has type `", TYPE_OF_EMPTY_BLOCK, "`");
+        }
+    }
+
     while (block && block->next != nullptr) {
         check_types_of_statement(&block->statement, Type::U0);
         block = block->next;
@@ -329,7 +340,8 @@ void Type_Checker::check_types_of_block(Block *block, Type expected_type)
 void Type_Checker::check_types_of_func_def(Func_Def *func_def)
 {
     push_scope(func_def->args_list);
-    check_types_of_block(func_def->body, func_def->return_type);
+    // TODO: use offset of the body instead of func_def
+    check_types_of_block(func_def->offset, func_def->body, func_def->return_type);
     pop_scope();
 }
 
