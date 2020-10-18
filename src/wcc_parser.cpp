@@ -111,6 +111,9 @@ void print1(FILE *stream, Statement statement)
     case Statement_Kind::Subtract_Assignment:
         print(stream, "(-= ", statement.subtract_assignment.var_name, " ", *statement.subtract_assignment.value, ")");
         break;
+    case Statement_Kind::Return:
+        print(stream, "(return ", *statement.reeturn.value, ")");
+        break;
     case Statement_Kind::Expression:
         print(stream, *statement.expression);
         break;
@@ -332,6 +335,12 @@ Subtract_Assignment Parser::parse_subtract_assignment()
     return subtract_assignment;
 }
 
+Return parse_return()
+{
+    assert(0 && "TODO: parse_return() is not implemented yet");
+    return {};
+}
+
 Statement Parser::parse_statement()
 {
     Statement result = {};
@@ -369,6 +378,10 @@ Statement Parser::parse_statement()
             expect_token_type(Token_Type::Semicolon);
             tokens.chop(1);
         }
+        break;
+    case Token_Type::Return:
+        result.kind = Statement_Kind::Return;
+        result.reeturn = parse_return();
         break;
     default:
         result.kind = Statement_Kind::Expression;
@@ -477,7 +490,7 @@ Expression *Parser::parse_primary()
     } break;
 
     default:
-        reporter.fail(current_offset(), "Unexpected token in an expression");
+        reporter.fail(current_offset(), "Unexpected token in an expression `", tokens.items->type, "`");
     }
 
     return primary_expression;

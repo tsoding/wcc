@@ -13,10 +13,10 @@ struct Type_Checker
         Scope *next;
     };
 
-
     Linear_Memory *memory;
     Reporter reporter;
     Scope *scope;
+    Func_Def *current_func_def;
 
     Type type_of_name(size_t offset, String_View name) const;
     void push_scope(Args_List *args_list = nullptr);

@@ -19,6 +19,7 @@ enum class Statement_Kind
     Assignment,
     Subtract_Assignment,
     Expression,
+    Return,
 };
 
 enum class Expression_Kind
@@ -135,6 +136,11 @@ struct Subtract_Assignment
     Expression *value;
 };
 
+struct Return
+{
+    Expression *value;
+};
+
 struct Statement
 {
     Statement_Kind kind;
@@ -148,6 +154,7 @@ struct Statement
         Assignment assignment;
         Subtract_Assignment subtract_assignment;
         Expression *expression;
+        Return reeturn;
     };
 };
 

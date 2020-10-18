@@ -460,6 +460,10 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
     } break;
     case Statement_Kind::Expression:
         return compile_expression(statement.expression);
+
+    case Statement_Kind::Return:
+        assert(0 && "TODO: Compilation of return is not implemented yet");
+        break;
     }
 
     return atom("<statement>"_sv);

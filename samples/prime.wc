@@ -3,7 +3,7 @@ func is_prime(x: u32): u32 {
 	while (i * i <= x) {
 		if (x % i == 0) {
 			// @bool
-			//return 0;
+			return 0;
 		} else {
 		}
 		// TODO: introduce +=

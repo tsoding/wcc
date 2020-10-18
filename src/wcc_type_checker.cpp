@@ -309,6 +309,10 @@ void Type_Checker::check_types_of_statement(Statement *statement, Type expected_
             check_types_of_expression(statement->expression),
             expected_type);
         break;
+    case Statement_Kind::Return:
+        assert(current_func_def  && "Type checking return statement outside of a Func_Def context");
+        assert(0 && "TODO: Type checking of return statement is not implemented");
+        break;
     }
 
     statement->type = expected_type;
@@ -339,9 +343,13 @@ void Type_Checker::check_types_of_block(size_t offset, Block *block, Type expect
 
 void Type_Checker::check_types_of_func_def(Func_Def *func_def)
 {
+    assert(current_func_def == nullptr &&
+           "Checking types of Func_Def in the contenxt of other Func_Def. This kinda stuff is not supported yet.");
+    current_func_def = func_def;
     push_scope(func_def->args_list);
     // TODO: use offset of the body instead of func_def
     check_types_of_block(func_def->offset, func_def->body, func_def->return_type);
+    current_func_def = nullptr;
     pop_scope();
 }
 
