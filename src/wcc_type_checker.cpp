@@ -286,6 +286,16 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
     return expression;
 }
 
+void Type_Checker::check_types_of_return(Return *reeturn, Type expected_type)
+{
+    (void) expected_type;
+    assert(current_func_def && "Type checking return statement outside of a Func_Def context");
+    reeturn->value = try_implicitly_cast_expression_to(
+        check_types_of_expression(reeturn->value),
+        current_func_def->return_type);
+    assert(0 && "TODO: Type checking of return statement is not implemented");
+}
+
 void Type_Checker::check_types_of_statement(Statement *statement, Type expected_type)
 {
     switch (statement->kind) {
@@ -310,8 +320,7 @@ void Type_Checker::check_types_of_statement(Statement *statement, Type expected_
             expected_type);
         break;
     case Statement_Kind::Return:
-        assert(current_func_def && "Type checking return statement outside of a Func_Def context");
-        assert(0 && "TODO: Type checking of return statement is not implemented");
+        check_types_of_return(&statement->reeturn, expected_type);
         break;
     }
 

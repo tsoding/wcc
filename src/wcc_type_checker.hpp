@@ -26,6 +26,7 @@ struct Type_Checker
     Expression *cast_expression_to(Expression *expression, Type type);
     Expression *try_implicitly_cast_expression_to(Expression *expression, Type cast_type);
 
+    void check_types_of_return(Return *reeturn, Type expected_type);
     void check_types_of_local_var_def(Local_Var_Def *local_var_def, Type expected_type);
     void check_types_of_while(While *hwile, Type expected_type);
     void check_types_of_if(If *iph, Type expected_type);
