@@ -335,10 +335,18 @@ Subtract_Assignment Parser::parse_subtract_assignment()
     return subtract_assignment;
 }
 
-Return parse_return()
+Return Parser::parse_return()
 {
-    assert(0 && "TODO: parse_return() is not implemented yet");
-    return {};
+    expect_token_type(Token_Type::Return);
+    tokens.chop(1);
+
+    Return reeturn = {};
+    reeturn.value = parse_expression();
+
+    expect_token_type(Token_Type::Semicolon);
+    tokens.chop(1);
+
+    return reeturn;
 }
 
 Statement Parser::parse_statement()

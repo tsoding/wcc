@@ -310,7 +310,7 @@ void Type_Checker::check_types_of_statement(Statement *statement, Type expected_
             expected_type);
         break;
     case Statement_Kind::Return:
-        assert(current_func_def  && "Type checking return statement outside of a Func_Def context");
+        assert(current_func_def && "Type checking return statement outside of a Func_Def context");
         assert(0 && "TODO: Type checking of return statement is not implemented");
         break;
     }

@@ -297,6 +297,7 @@ struct Parser
     Expression *parse_binary_op(size_t binary_op_priority);
     Expression *parse_expression();
     Expression *parse_primary();
+    Return parse_return();
     Top_Level_Def *parse_top_level_def();
     Module parse_module();
 };
