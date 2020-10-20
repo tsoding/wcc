@@ -288,12 +288,16 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
 
 void Type_Checker::check_types_of_return(Return *reeturn, Type expected_type)
 {
-    (void) expected_type;
     assert(current_func_def && "Type checking return statement outside of a Func_Def context");
     reeturn->value = try_implicitly_cast_expression_to(
         check_types_of_expression(reeturn->value),
         current_func_def->return_type);
-    assert(0 && "TODO: Type checking of return statement is not implemented");
+
+    const auto TYPE_OF_RETURN = Type::U0;
+    if (expected_type != TYPE_OF_RETURN) {
+        // TODO: use offset of the assignment itself instead of its value
+        reporter.fail(reeturn->value->offset, "Expected statement of type `", expected_type, "`, but return has the type `", TYPE_OF_RETURN, "`");
+    }
 }
 
 void Type_Checker::check_types_of_statement(Statement *statement, Type expected_type)

@@ -466,7 +466,8 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
         break;
     }
 
-    return atom("<statement>"_sv);
+    assert(0 && "Memory corruption?");
+    return nullptr;
 }
 
 S_Expr *Wat_Compiler::compile_block(Block *block)
