@@ -477,46 +477,12 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
                           list(atom("i32.eqz"_sv), compile_expression(statement.hwile.condition)))),
                 compile_block(statement.hwile.body),
                 list(list(atom("br"_sv), atom(0)))));
+
     case Statement_Kind::Assignment:
         return list(atom("set_local"_sv),
                     wat_ident(statement.assignment.var_name),
                     compile_expression(statement.assignment.value));
-    case Statement_Kind::Subtract_Assignment: {
-        // TODO: can we get rid of Subtract_Assignment and simply desugar it to Assignment during the parsing? @subass-sugar
-        auto var_ident = wat_ident(statement.subtract_assignment.var_name);
 
-        switch (statement.subtract_assignment.value->type) {
-        case Type::U0:
-            assert(0 && "Type checking step didn't work correctly. There is not -= operation defined for U0");
-            break;
-
-        case Type::Bool:
-            assert(0 && "Type checking step didn't work correctly. There is not -= operation defined for bool");
-            break;
-
-        case Type::U8:
-            return list(atom("set_local"_sv),
-                        var_ident,
-                        list(atom("i32.sub"_sv),
-                             list(atom("get_local"_sv), var_ident),
-                             compile_expression(statement.subtract_assignment.value)));
-        case Type::U32:
-            return list(atom("set_local"_sv),
-                        var_ident,
-                        list(atom("i32.sub"_sv),
-                             list(atom("get_local"_sv), var_ident),
-                             compile_expression(statement.subtract_assignment.value)));
-        case Type::U64:
-            return list(atom("set_local"_sv),
-                        var_ident,
-                        list(atom("i64.sub"_sv),
-                             list(atom("get_local"_sv), var_ident),
-                             compile_expression(statement.subtract_assignment.value)));
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-    } break;
     case Statement_Kind::Expression:
         return compile_expression(statement.expression);
 

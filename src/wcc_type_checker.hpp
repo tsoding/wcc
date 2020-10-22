@@ -31,7 +31,6 @@ struct Type_Checker
     void check_types_of_while(While *hwile, Type expected_type);
     void check_types_of_if(If *iph, Type expected_type);
     void check_types_of_assignment(Assignment *assignment, Type expected_type);
-    void check_types_of_subtract_assignment(Subtract_Assignment *subtract_assignment, Type expected_type);
     Expression *check_types_of_expression(Expression *expression);
 
     void check_types_of_statement(Statement *statement, Type expected_type);
