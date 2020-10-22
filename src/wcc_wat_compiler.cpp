@@ -43,7 +43,7 @@ S_Expr *Wat_Compiler::wat_name_of_type(Type type)
     switch (type) {
     case Type::Unchecked:
     case Type::U0:
-        assert(0 && "Something went horribly wrong. Such value should never reach here.");
+        assert(0 && "Something went horribly wrong. Such value should never reach here. Trying to compile a type that does not have a WebAssembly representation.");
         break;
 
     case Type::U8:
@@ -56,6 +56,10 @@ S_Expr *Wat_Compiler::wat_name_of_type(Type type)
 
     case Type::U64:
         return atom("i64"_sv);
+        break;
+
+    case Type::Bool:
+        return atom("i32"_sv);
         break;
     }
     return {};
@@ -102,6 +106,15 @@ S_Expr *Wat_Compiler::compile_number_literal(Number_Literal number_literal)
     return list(atom("i32.const"_sv), atom(number_literal.unwrap));
 }
 
+S_Expr *Wat_Compiler::compile_bool_literal(Bool_Literal bool_literal)
+{
+    if (bool_literal.unwrap) {
+        return list(atom("i32.const"_sv), atom(1));
+    } else {
+        return list(atom("i32.const"_sv), atom(0));
+    }
+}
+
 S_Expr *Wat_Compiler::compile_variable(Variable variable)
 {
     return list(atom("get_local"_sv), wat_ident(variable.name));
@@ -112,7 +125,10 @@ S_Expr *Wat_Compiler::compile_rem(Binary_Op rem)
     assert(rem.lhs->type == rem.rhs->type && "Type Checking step didn't work correctly.");
     switch (rem.lhs->type) {
     case Type::U0:
-        assert(0 && "Type checking did not work correctly. There is no Rem operation defined for Type::U0");
+        assert(0 && "Type checking did not work correctly. There is no Rem operation defined for Type::U0.");
+        break;
+    case Type::Bool:
+        assert(0 && "Type checking did not work correctly. There is no Rem operation defined for Type::Bool.");
         break;
     case Type::U8:
     case Type::U32:
@@ -120,7 +136,7 @@ S_Expr *Wat_Compiler::compile_rem(Binary_Op rem)
     case Type::U64:
         return list(atom("i64.rem_u"_sv), compile_expression(rem.lhs), compile_expression(rem.rhs));
     case Type::Unchecked:
-        assert(0 && "Type checking step didn't work correctly");
+        assert(0 && "Unchecked type in a checked context");
         break;
     }
 
@@ -134,7 +150,10 @@ S_Expr *Wat_Compiler::compile_minus(Binary_Op minus)
 
     switch (minus.lhs->type) {
     case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for Type::U0");
+        assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for Type::U0.");
+        break;
+    case Type::Bool:
+        assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for Type::Bool.");
         break;
     case Type::U8:
     case Type::U32:
@@ -156,7 +175,10 @@ S_Expr *Wat_Compiler::compile_multiply(Binary_Op multiply)
 
     switch (multiply.lhs->type) {
     case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for Type::U0");
+        assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for Type::U0.");
+        break;
+    case Type::Bool:
+        assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for Type::Bool.");
         break;
     case Type::U8:
     case Type::U32:
@@ -180,6 +202,9 @@ S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
     case Type::U0:
         assert(0 && "Type Checking step didn't work correctly. There is no plus operation defined for Type::U0");
         break;
+    case Type::Bool:
+        assert(0 && "Type Checking step didn't work correctly. There is no plus operation defined for Type::Bool");
+        break;
     case Type::U8:
     case Type::U32:
         return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
@@ -201,6 +226,10 @@ S_Expr *Wat_Compiler::compile_less_equals(Binary_Op less_equals)
     switch (less_equals.lhs->type) {
     case Type::U0:
         assert(0 && "Type Checking step didn't work correctly. There is no less_equals operation defined for Type::U0");
+        break;
+    case Type::Bool:
+        assert(0 && "Type Checking step didn't work correctly. There is no less_equals operation defined for Type::Bool");
+        break;
     case Type::U8:
         return list(atom("i32.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
     case Type::U32:
@@ -223,6 +252,8 @@ S_Expr *Wat_Compiler::compile_equals(Binary_Op equals)
     switch (equals.lhs->type) {
     case Type::U0:
         assert(0 && "Type Checking step didn't work correctly. There is no equals operation defined for Type::U0");
+    case Type::Bool:
+        assert(0 && "Type Checking step didn't work correctly. There is no equals operation defined for Type::Bool");
     case Type::U8:
         return list(atom("i32.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
     case Type::U32:
@@ -245,6 +276,8 @@ S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
     switch (greater.lhs->type) {
     case Type::U0:
         assert(0 && "Type Checking step didn't work correctly. There is no greater operation defined for Type::U0");
+    case Type::Bool:
+        assert(0 && "Type Checking step didn't work correctly. There is no greater operation defined for Type::Bool");
     case Type::U8:
         return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
     case Type::U32:
@@ -268,16 +301,16 @@ S_Expr *Wat_Compiler::compile_and(Binary_Op andd)
     case Type::U0:
         assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U0");
         break;
-    case Type::U64:
-        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U64");
-        break;
     case Type::U8:
         assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U8");
         break;
     case Type::U32:
-        // NOTE: this is a logical and so it should only work for
-        // @bool. Right now we don't have any @bool so u32 is a
-        // replacement for @bool.
+        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U32");
+        break;
+    case Type::U64:
+        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U64");
+        break;
+    case Type::Bool:
         return list(atom("i32.and"_sv), compile_expression(andd.lhs), compile_expression(andd.rhs));
     case Type::Unchecked:
         assert(0 && "Type checking step didn't work correctly");
@@ -296,12 +329,29 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
     case Type::U0:
         reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
 
+    case Type::Bool:
+        switch (type_cast.type) {
+        case Type::Bool:
+            return expression;
+        case Type::U0:
+        case Type::U8:
+        case Type::U32:
+        case Type::U64:
+            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
+
     case Type::U8:
         switch (type_cast.type) {
         case Type::U0:
             return list(atom("drop"_sv), expression);
         case Type::U8:
         case Type::U32:
+        case Type::Bool:
             return expression;
         case Type::U64:
             return list(atom("i64.extend_u/i32"_sv), expression);
@@ -317,6 +367,7 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
             return list(atom("drop"_sv), expression);
         case Type::U8:
             reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+        case Type::Bool:
         case Type::U32:
             return expression;
         case Type::U64:
@@ -333,6 +384,7 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
             return list(atom("drop"_sv), expression);
         case Type::U8:
         case Type::U32:
+        case Type::Bool:
             reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
         case Type::U64:
             return expression;
@@ -358,6 +410,8 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
         return compile_type_cast(expression->type_cast);
     case Expression_Kind::Number_Literal:
         return compile_number_literal(expression->number_literal);
+    case Expression_Kind::Bool_Literal:
+        return compile_bool_literal(expression->bool_literal);
     case Expression_Kind::Variable:
         return compile_variable(expression->variable);
     case Expression_Kind::Plus:
@@ -435,6 +489,11 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
         case Type::U0:
             assert(0 && "Type checking step didn't work correctly. There is not -= operation defined for U0");
             break;
+
+        case Type::Bool:
+            assert(0 && "Type checking step didn't work correctly. There is not -= operation defined for bool");
+            break;
+
         case Type::U8:
             return list(atom("set_local"_sv),
                         var_ident,

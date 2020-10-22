@@ -53,78 +53,53 @@ Expression *Type_Checker::cast_expression_to(Expression *expression, Type type)
     return cast_expression;
 }
 
-bool is_expression_castable_to(Expression *expression, Type cast_type)
+// TODO: Consider removing implicit conversion from any type to u0
+//
+// Introduce a compile intrinsic `drop()`, so if you wanna have a
+// expression in the position of u0 you have to do
+// `drop(<expression>)`. Similarly to how you would do that in raw
+// wasm.
+
+static const Type implicit_conversion_table[][2] = {
+    {Type::U0, Type::U0},
+
+    {Type::U8, Type::U0},
+    {Type::U8, Type::U8},
+    {Type::U8, Type::U32},
+    {Type::U8, Type::U64},
+
+    {Type::U32, Type::U0},
+    {Type::U32, Type::U32},
+    {Type::U32, Type::U64},
+
+    {Type::U64, Type::U0},
+    {Type::U64, Type::U64},
+
+    {Type::Bool, Type::Bool},
+};
+const size_t implicit_conversion_table_count =
+    sizeof(implicit_conversion_table) / sizeof(implicit_conversion_table[0]);
+
+bool is_expression_implicitly_convertible_to(Expression *expression, Type target_type)
 {
-    switch (expression->type) {
-    case Type::U0:
-        switch (cast_type) {
-        case Type::U0:
-            return true;
-        case Type::U8:
-        case Type::U32:
-        case Type::U64:
-            return false;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
+    assert(expression->type != Type::Unchecked && "Unchecked type in a checked context");
+    assert(target_type != Type::Unchecked && "Unchecked type in a checked context");
 
-    case Type::U8:
-        switch (cast_type) {
-        case Type::U0:
+    for (size_t i = 0; i < implicit_conversion_table_count; ++i) {
+        const size_t SOURCE = 0;
+        const size_t TARGET = 1;
+        if (implicit_conversion_table[i][SOURCE] == expression->type &&
+            implicit_conversion_table[i][TARGET] == target_type) {
             return true;
-        case Type::U8:
-        case Type::U32:
-        case Type::U64:
-            return true;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
         }
-        break;
-    case Type::U32:
-        switch (cast_type) {
-        case Type::U0:
-            return true;
-        case Type::U8:
-            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF;
-        case Type::U32:
-        case Type::U64:
-            return true;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
-    case Type::U64:
-        switch (cast_type) {
-        case Type::U0:
-            return true;
-        case Type::U8:
-            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF;
-        case Type::U32:
-            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF'FF'FF'FF;
-        case Type::U64:
-            return true;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
-
-    case Type::Unchecked:
-        assert(0 && "Unchecked type in a checked context");
-        break;
     }
 
-    assert(0 && "Memory corruption?");
     return false;
 }
 
-Expression *Type_Checker::try_implicitly_cast_expression_to(Expression *expression, Type cast_type)
+Expression *Type_Checker::try_implicitly_convert_expression_to(Expression *expression, Type cast_type)
 {
-    if (is_expression_castable_to(expression, cast_type)) {
+    if (is_expression_implicitly_convertible_to(expression, cast_type)) {
         return cast_expression_to(expression, cast_type);
     } else {
         reporter.fail(expression->offset, "Expression of type `", expression->type, "` is not convertable to `", cast_type, "`");
@@ -135,7 +110,7 @@ Expression *Type_Checker::try_implicitly_cast_expression_to(Expression *expressi
 
 void Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def, Type expected_type)
 {
-    local_var_def->value = try_implicitly_cast_expression_to(
+    local_var_def->value = try_implicitly_convert_expression_to(
         check_types_of_expression(local_var_def->value),
         local_var_def->def.type);
 
@@ -151,10 +126,9 @@ void Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def, Ty
 
 void Type_Checker::check_types_of_while(While *hwile, Type expected_type)
 {
-    // TODO: support for booleans (grep for @bool)
-    hwile->condition = try_implicitly_cast_expression_to(
+    hwile->condition = try_implicitly_convert_expression_to(
         check_types_of_expression(hwile->condition),
-        Type::U32);
+        Type::Bool);
     // TODO: use offset of the hwile body itself instead of its condition
     check_types_of_block(hwile->condition->offset, hwile->body, Type::U0);
 
@@ -167,10 +141,9 @@ void Type_Checker::check_types_of_while(While *hwile, Type expected_type)
 
 void Type_Checker::check_types_of_if(If *iph, Type expected_type)
 {
-    // @bool
-    iph->condition = try_implicitly_cast_expression_to(
+    iph->condition = try_implicitly_convert_expression_to(
         check_types_of_expression(iph->condition),
-        Type::U32);
+        Type::Bool);
     // TODO: use offsets of the `then` and `else` blocks themselves instead of the if condition
     check_types_of_block(iph->condition->offset, iph->then, expected_type);
     check_types_of_block(iph->condition->offset, iph->elze, expected_type);
@@ -181,7 +154,7 @@ void Type_Checker::check_types_of_assignment(Assignment *assignment, Type expect
     // TODO: check_types_of_assignment should report errors on the assignment's offset, not its value one
     // TODO: assigment could be an expression that has the type of the variable it assigns
     size_t offset = assignment->value->offset;
-    assignment->value = try_implicitly_cast_expression_to(
+    assignment->value = try_implicitly_convert_expression_to(
         check_types_of_expression(assignment->value),
         type_of_name(offset, assignment->var_name));
 
@@ -196,7 +169,7 @@ void Type_Checker::check_types_of_subtract_assignment(Subtract_Assignment *subtr
 {
     // @subass-sugar
     size_t offset = subtract_assignment->value->offset;
-    subtract_assignment->value = try_implicitly_cast_expression_to(
+    subtract_assignment->value = try_implicitly_convert_expression_to(
         check_types_of_expression(subtract_assignment->value),
         type_of_name(offset, subtract_assignment->var_name));
 
@@ -230,6 +203,10 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
         }
     } break;
 
+    case Expression_Kind::Bool_Literal: {
+        expression->type = Type::Bool;
+    } break;
+
     case Expression_Kind::Variable: {
         expression->type = type_of_name(expression->offset, expression->variable.name);
     } break;
@@ -243,10 +220,10 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
         auto lhs_type = expression->binary_op.lhs->type;
         auto rhs_type = expression->binary_op.rhs->type;
 
-        if (is_expression_castable_to(expression->binary_op.lhs, rhs_type)) {
+        if (is_expression_implicitly_convertible_to(expression->binary_op.lhs, rhs_type)) {
             expression->binary_op.lhs = cast_expression_to(expression->binary_op.lhs, rhs_type);
             expression->type = rhs_type;
-        } else if (is_expression_castable_to(expression->binary_op.rhs, lhs_type)) {
+        } else if (is_expression_implicitly_convertible_to(expression->binary_op.rhs, lhs_type)) {
             expression->binary_op.rhs = cast_expression_to(expression->binary_op.rhs, lhs_type);
             expression->type = lhs_type;
         } else {
@@ -262,24 +239,24 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
         auto lhs_type = expression->binary_op.lhs->type;
         auto rhs_type = expression->binary_op.rhs->type;
 
-        if (is_expression_castable_to(expression->binary_op.lhs, rhs_type)) {
+        if (is_expression_implicitly_convertible_to(expression->binary_op.lhs, rhs_type)) {
             expression->binary_op.lhs = cast_expression_to(expression->binary_op.lhs, rhs_type);
-        } else if (is_expression_castable_to(expression->binary_op.lhs, lhs_type)) {
-            expression->binary_op.rhs = try_implicitly_cast_expression_to(expression->binary_op.rhs, lhs_type);
+        } else if (is_expression_implicitly_convertible_to(expression->binary_op.lhs, lhs_type)) {
+            expression->binary_op.rhs = try_implicitly_convert_expression_to(expression->binary_op.rhs, lhs_type);
         } else {
             reporter.fail(expression->binary_op.rhs->offset, "Types `", lhs_type, "` and `", rhs_type, "` are not comparable with each other");
         }
-        expression->type = Type::U32; // @bool
+        expression->type = Type::Bool;
     } break;
 
     case Expression_Kind::And: {
-        expression->binary_op.lhs = try_implicitly_cast_expression_to(
+        expression->binary_op.lhs = try_implicitly_convert_expression_to(
             check_types_of_expression(expression->binary_op.lhs),
-            Type::U32);
-        expression->binary_op.rhs = try_implicitly_cast_expression_to(
+            Type::Bool);
+        expression->binary_op.rhs = try_implicitly_convert_expression_to(
             check_types_of_expression(expression->binary_op.rhs),
-            Type::U32);
-        expression->type = Type::U32; // @bool
+            Type::Bool);
+        expression->type = Type::Bool;
     } break;
     }
 
@@ -289,7 +266,7 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
 void Type_Checker::check_types_of_return(Return *reeturn, Type expected_type)
 {
     assert(current_func_def && "Type checking return statement outside of a Func_Def context");
-    reeturn->value = try_implicitly_cast_expression_to(
+    reeturn->value = try_implicitly_convert_expression_to(
         check_types_of_expression(reeturn->value),
         current_func_def->return_type);
 
@@ -319,7 +296,7 @@ void Type_Checker::check_types_of_statement(Statement *statement, Type expected_
         check_types_of_subtract_assignment(&statement->subtract_assignment, expected_type);
         break;
     case Statement_Kind::Expression:
-        statement->expression = try_implicitly_cast_expression_to(
+        statement->expression = try_implicitly_convert_expression_to(
             check_types_of_expression(statement->expression),
             expected_type);
         break;
