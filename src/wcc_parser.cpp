@@ -148,6 +148,9 @@ void print1(FILE *stream, Type type)
     case Type::U64:
         print(stream, "u64");
         break;
+    case Type::Bool:
+        print(stream, "bool");
+        break;
     }
 }
 

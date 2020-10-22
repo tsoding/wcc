@@ -8,6 +8,7 @@ enum class Type
     U8,
     U32,
     U64,
+    Bool,
 };
 
 #endif  // WCC_TYPES_HPP_
