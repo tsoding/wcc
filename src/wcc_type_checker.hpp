@@ -24,7 +24,7 @@ struct Type_Checker
     void pop_scope();
 
     Expression *cast_expression_to(Expression *expression, Type type);
-    Expression *try_implicitly_cast_expression_to(Expression *expression, Type cast_type);
+    Expression *try_implicitly_convert_expression_to(Expression *expression, Type cast_type);
 
     void check_types_of_return(Return *reeturn, Type expected_type);
     void check_types_of_local_var_def(Local_Var_Def *local_var_def, Type expected_type);
