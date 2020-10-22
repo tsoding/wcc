@@ -462,8 +462,7 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
         return compile_expression(statement.expression);
 
     case Statement_Kind::Return:
-        assert(0 && "TODO: Compilation of return is not implemented yet");
-        break;
+        return list(atom("return"_sv), compile_expression(statement.reeturn.value));
     }
 
     assert(0 && "Memory corruption?");
