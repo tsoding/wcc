@@ -165,21 +165,6 @@ void Type_Checker::check_types_of_assignment(Assignment *assignment, Type expect
     }
 }
 
-void Type_Checker::check_types_of_subtract_assignment(Subtract_Assignment *subtract_assignment, Type expected_type)
-{
-    // @subass-sugar
-    size_t offset = subtract_assignment->value->offset;
-    subtract_assignment->value = try_implicitly_convert_expression_to(
-        check_types_of_expression(subtract_assignment->value),
-        type_of_name(offset, subtract_assignment->var_name));
-
-    const auto TYPE_OF_SUBTRACT_ASSIGNMENT = Type::U0;
-    if (expected_type != TYPE_OF_SUBTRACT_ASSIGNMENT) {
-        // TODO: use offset of the assignment itself instead of its value
-        reporter.fail(subtract_assignment->value->offset, "Expected statement of type `", expected_type, "`, but subtract assignment has the type `", TYPE_OF_SUBTRACT_ASSIGNMENT, "`");
-    }
-}
-
 Expression *Type_Checker::check_types_of_expression(Expression *expression)
 {
     assert(expression->type == Type::Unchecked);
@@ -291,9 +276,6 @@ void Type_Checker::check_types_of_statement(Statement *statement, Type expected_
         break;
     case Statement_Kind::Assignment:
         check_types_of_assignment(&statement->assignment, expected_type);
-        break;
-    case Statement_Kind::Subtract_Assignment:
-        check_types_of_subtract_assignment(&statement->subtract_assignment, expected_type);
         break;
     case Statement_Kind::Expression:
         statement->expression = try_implicitly_convert_expression_to(

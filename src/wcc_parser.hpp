@@ -17,7 +17,6 @@ enum class Statement_Kind
     While,
     If,
     Assignment,
-    Subtract_Assignment,
     Expression,
     Return,
 };
@@ -137,12 +136,6 @@ struct Assignment
     Expression *value;
 };
 
-struct Subtract_Assignment
-{
-    String_View var_name;
-    Expression *value;
-};
-
 struct Return
 {
     Expression *value;
@@ -159,7 +152,6 @@ struct Statement
         While hwile;
         If iph;
         Assignment assignment;
-        Subtract_Assignment subtract_assignment;
         Expression *expression;
         Return reeturn;
     };
@@ -300,7 +292,7 @@ struct Parser
     Statement parse_statement();
     Block *parse_block();
     Statement parse_dummy_statement();
-    Subtract_Assignment parse_subtract_assignment();
+    Assignment parse_subtract_assignment();
     Expression *parse_binary_op(size_t binary_op_priority);
     Expression *parse_expression();
     Expression *parse_primary();

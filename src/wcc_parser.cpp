@@ -118,9 +118,6 @@ void print1(FILE *stream, Statement statement)
     case Statement_Kind::Assignment:
         print(stream, "(= ", statement.assignment.var_name, " ", *statement.assignment.value, ")");
         break;
-    case Statement_Kind::Subtract_Assignment:
-        print(stream, "(-= ", statement.subtract_assignment.var_name, " ", *statement.subtract_assignment.value, ")");
-        break;
     case Statement_Kind::Return:
         print(stream, "(return ", *statement.reeturn.value, ")");
         break;
@@ -331,23 +328,28 @@ Assignment Parser::parse_assignment()
     return assignment;
 }
 
-Subtract_Assignment Parser::parse_subtract_assignment()
+Assignment Parser::parse_subtract_assignment()
 {
-    Subtract_Assignment subtract_assignment = {};
+    Assignment assignment = {};
 
     expect_token_type(Token_Type::Symbol);
-    subtract_assignment.var_name = tokens.items->text;
+    assignment.var_name = tokens.items->text;
     tokens.chop(1);
 
     expect_token_type(Token_Type::Minus_Equals);
     tokens.chop(1);
 
-    subtract_assignment.value = parse_expression();
+    assignment.value = memory->alloc<Expression>();
+    assignment.value->kind = Expression_Kind::Minus;
+    assignment.value->binary_op.lhs = memory->alloc<Expression>();
+    assignment.value->binary_op.lhs->kind = Expression_Kind::Variable;
+    assignment.value->binary_op.lhs->variable.name = assignment.var_name;
+    assignment.value->binary_op.rhs = parse_expression();
 
     expect_token_type(Token_Type::Semicolon);
     tokens.chop(1);
 
-    return subtract_assignment;
+    return assignment;
 }
 
 Return Parser::parse_return()
@@ -392,8 +394,8 @@ Statement Parser::parse_statement()
             result.assignment = parse_assignment();
             break;
         case Token_Type::Minus_Equals:
-            result.kind = Statement_Kind::Subtract_Assignment;
-            result.subtract_assignment = parse_subtract_assignment();
+            result.kind = Statement_Kind::Assignment;
+            result.assignment = parse_subtract_assignment();
             break;
         default:
             result.kind = Statement_Kind::Expression;
