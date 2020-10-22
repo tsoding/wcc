@@ -30,6 +30,8 @@ enum class Token_Type
     Else,
     Asterisk,
     Return,
+    True,
+    False,
 };
 
 void print1(FILE *stream, Token_Type type);

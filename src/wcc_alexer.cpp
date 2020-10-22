@@ -28,6 +28,8 @@ void print1(FILE *stream, Token_Type type)
     case Token_Type::Asterisk: print(stream, "Asterisk"); break;
     case Token_Type::Equals_Equals: print(stream, "Equals_Equals"); break;
     case Token_Type::Return: print(stream, "Return"); break;
+    case Token_Type::True: print(stream, "True"); break;
+    case Token_Type::False: print(stream, "False"); break;
     }
 }
 
@@ -86,6 +88,10 @@ void Alexer::tokenize()
                 tokens.push(Token {Token_Type::Else, token_text});
             } else if (token_text == "return"_sv) {
                 tokens.push(Token {Token_Type::Return, token_text});
+            } else if (token_text == "true"_sv) {
+                tokens.push(Token {Token_Type::True, token_text});
+            } else if (token_text == "false"_sv) {
+                tokens.push(Token {Token_Type::False, token_text});
             } else {
                 tokens.push(Token {Token_Type::Symbol, token_text});
             }

@@ -52,6 +52,9 @@ void print1(FILE *stream, Expression_Kind expression_kind)
     case Expression_Kind::Equals:
         print(stream, "Equals");
         break;
+    case Expression_Kind::Bool_Literal:
+        print(stream, "Bool_Literal");
+        break;
     }
 }
 
@@ -63,6 +66,13 @@ void print1(FILE *stream, Expression expression)
         break;
     case Expression_Kind::Number_Literal:
         print(stream, expression.number_literal.unwrap);
+        break;
+    case Expression_Kind::Bool_Literal:
+        if (expression.bool_literal.unwrap) {
+            print(stream, "true");
+        } else {
+            print(stream, "false");
+        }
         break;
     case Expression_Kind::Variable:
         print(stream, expression.variable.name);
@@ -237,6 +247,9 @@ Type Parser::parse_type_annotation()
     } else if (type_name == "u8"_sv) {
         tokens.chop(1);
         return Type::U8;
+    } else if (type_name == "bool"_sv) {
+        tokens.chop(1);
+        return Type::Bool;
     } else {
         reporter.fail(current_offset(), "Unknown type `", type_name, "`");
         return Type::Unchecked;
@@ -476,6 +489,18 @@ Expression *Parser::parse_primary()
     primary_expression->offset = current_offset();
 
     switch (tokens.items->type) {
+    case Token_Type::True: {
+        primary_expression->kind = Expression_Kind::Bool_Literal;
+        primary_expression->bool_literal = {true};
+        tokens.chop(1);
+    } break;
+
+    case Token_Type::False: {
+        primary_expression->kind = Expression_Kind::Bool_Literal;
+        primary_expression->bool_literal = {false};
+        tokens.chop(1);
+    } break;
+
     case Token_Type::Number_Literal: {
         primary_expression->kind = Expression_Kind::Number_Literal;
         auto x = tokens.items->text.as_integer<uint32_t>();

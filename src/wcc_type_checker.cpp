@@ -74,6 +74,8 @@ static const Type implicit_conversion_table[][2] = {
 
     {Type::U64, Type::U0},
     {Type::U64, Type::U64},
+
+    {Type::Bool, Type::Bool},
 };
 const size_t implicit_conversion_table_count =
     sizeof(implicit_conversion_table) / sizeof(implicit_conversion_table[0]);
@@ -124,10 +126,9 @@ void Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def, Ty
 
 void Type_Checker::check_types_of_while(While *hwile, Type expected_type)
 {
-    // TODO: support for booleans (grep for @bool)
     hwile->condition = try_implicitly_convert_expression_to(
         check_types_of_expression(hwile->condition),
-        Type::U32);
+        Type::Bool);
     // TODO: use offset of the hwile body itself instead of its condition
     check_types_of_block(hwile->condition->offset, hwile->body, Type::U0);
 
@@ -140,10 +141,9 @@ void Type_Checker::check_types_of_while(While *hwile, Type expected_type)
 
 void Type_Checker::check_types_of_if(If *iph, Type expected_type)
 {
-    // @bool
     iph->condition = try_implicitly_convert_expression_to(
         check_types_of_expression(iph->condition),
-        Type::U32);
+        Type::Bool);
     // TODO: use offsets of the `then` and `else` blocks themselves instead of the if condition
     check_types_of_block(iph->condition->offset, iph->then, expected_type);
     check_types_of_block(iph->condition->offset, iph->elze, expected_type);
@@ -203,6 +203,10 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
         }
     } break;
 
+    case Expression_Kind::Bool_Literal: {
+        expression->type = Type::Bool;
+    } break;
+
     case Expression_Kind::Variable: {
         expression->type = type_of_name(expression->offset, expression->variable.name);
     } break;
@@ -242,17 +246,17 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
         } else {
             reporter.fail(expression->binary_op.rhs->offset, "Types `", lhs_type, "` and `", rhs_type, "` are not comparable with each other");
         }
-        expression->type = Type::U32; // @bool
+        expression->type = Type::Bool;
     } break;
 
     case Expression_Kind::And: {
         expression->binary_op.lhs = try_implicitly_convert_expression_to(
             check_types_of_expression(expression->binary_op.lhs),
-            Type::U32);
+            Type::Bool);
         expression->binary_op.rhs = try_implicitly_convert_expression_to(
             check_types_of_expression(expression->binary_op.rhs),
-            Type::U32);
-        expression->type = Type::U32; // @bool
+            Type::Bool);
+        expression->type = Type::Bool;
     } break;
     }
 

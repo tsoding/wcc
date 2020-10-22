@@ -124,6 +124,7 @@ struct Wat_Compiler
     S_Expr *compile_args_list(Args_List *args_list);
     S_Expr *compile_return_type(Type type);
     S_Expr *compile_number_literal(Number_Literal number_literal);
+    S_Expr *compile_bool_literal(Bool_Literal bool_literal);
     S_Expr *compile_variable(Variable variable);
     S_Expr *compile_rem(Binary_Op rem);
     S_Expr *compile_plus(Binary_Op plus);

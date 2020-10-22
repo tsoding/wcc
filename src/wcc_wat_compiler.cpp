@@ -106,6 +106,15 @@ S_Expr *Wat_Compiler::compile_number_literal(Number_Literal number_literal)
     return list(atom("i32.const"_sv), atom(number_literal.unwrap));
 }
 
+S_Expr *Wat_Compiler::compile_bool_literal(Bool_Literal bool_literal)
+{
+    if (bool_literal.unwrap) {
+        return list(atom("i32.const"_sv), atom(1));
+    } else {
+        return list(atom("i32.const"_sv), atom(0));
+    }
+}
+
 S_Expr *Wat_Compiler::compile_variable(Variable variable)
 {
     return list(atom("get_local"_sv), wat_ident(variable.name));
@@ -317,9 +326,24 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
     auto expression = compile_expression(type_cast.expression);
 
     switch (type_cast.expression->type) {
-    case Type::Bool:
     case Type::U0:
         reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+
+    case Type::Bool:
+        switch (type_cast.type) {
+        case Type::Bool:
+            return expression;
+        case Type::U0:
+        case Type::U8:
+        case Type::U32:
+        case Type::U64:
+            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+
+        case Type::Unchecked:
+            assert(0 && "Unchecked type in a checked context");
+            break;
+        }
+        break;
 
     case Type::U8:
         switch (type_cast.type) {
@@ -386,6 +410,8 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
         return compile_type_cast(expression->type_cast);
     case Expression_Kind::Number_Literal:
         return compile_number_literal(expression->number_literal);
+    case Expression_Kind::Bool_Literal:
+        return compile_bool_literal(expression->bool_literal);
     case Expression_Kind::Variable:
         return compile_variable(expression->variable);
     case Expression_Kind::Plus:

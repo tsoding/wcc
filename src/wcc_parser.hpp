@@ -35,6 +35,7 @@ enum class Expression_Kind
     And,
     Multiply,
     Equals,
+    Bool_Literal,
 };
 
 void print1(FILE *stream, Expression_Kind expression_kind);
@@ -64,6 +65,11 @@ const Expression_Kind binary_op_kinds[] = {
 const size_t binary_op_kinds_count = sizeof(binary_op_kinds) / sizeof(binary_op_kinds[0]);
 
 static_assert(binary_ops_count == binary_op_kinds_count);
+
+struct Bool_Literal
+{
+    bool unwrap;
+};
 
 struct Number_Literal
 {
@@ -100,6 +106,7 @@ struct Expression
         Variable variable;
         Binary_Op binary_op;
         Type_Cast type_cast;
+        Bool_Literal bool_literal;
     };
 };
 
