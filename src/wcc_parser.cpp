@@ -256,11 +256,10 @@ If Parser::parse_if()
 
     result.then = parse_block();
 
-    // TODO: there is no else-less if support
-    expect_token_type(Token_Type::Else);
-    tokens.chop(1);
-
-    result.elze = parse_block();
+    if (tokens.count > 0 && tokens.items->type == Token_Type::Else) {
+        tokens.chop(1);
+        result.elze = parse_block();
+    }
 
     return result;
 }
