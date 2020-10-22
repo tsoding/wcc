@@ -53,72 +53,45 @@ Expression *Type_Checker::cast_expression_to(Expression *expression, Type type)
     return cast_expression;
 }
 
-bool is_expression_implicitly_convertible_to(Expression *expression, Type cast_type)
+// TODO: Consider removing implicit conversion from any type to u0
+//
+// Introduce a compile intrinsic `drop()`, so if you wanna have a
+// expression in the position of u0 you have to do
+// `drop(<expression>)`. Similarly to how you would do that in raw
+// wasm.
+
+static const Type implicit_conversion_table[][2] = {
+    {Type::U0, Type::U0},
+
+    {Type::U8, Type::U0},
+    {Type::U8, Type::U8},
+    {Type::U8, Type::U32},
+    {Type::U8, Type::U64},
+
+    {Type::U32, Type::U0},
+    {Type::U32, Type::U32},
+    {Type::U32, Type::U64},
+
+    {Type::U64, Type::U0},
+    {Type::U64, Type::U64},
+};
+const size_t implicit_conversion_table_count =
+    sizeof(implicit_conversion_table) / sizeof(implicit_conversion_table[0]);
+
+bool is_expression_implicitly_convertible_to(Expression *expression, Type target_type)
 {
-    switch (expression->type) {
-    case Type::U0:
-        switch (cast_type) {
-        case Type::U0:
-            return true;
-        case Type::U8:
-        case Type::U32:
-        case Type::U64:
-            return false;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
+    assert(expression->type != Type::Unchecked && "Unchecked type in a checked context");
+    assert(target_type != Type::Unchecked && "Unchecked type in a checked context");
 
-    case Type::U8:
-        switch (cast_type) {
-        case Type::U0:
+    for (size_t i = 0; i < implicit_conversion_table_count; ++i) {
+        const size_t SOURCE = 0;
+        const size_t TARGET = 1;
+        if (implicit_conversion_table[i][SOURCE] == expression->type &&
+            implicit_conversion_table[i][TARGET] == target_type) {
             return true;
-        case Type::U8:
-        case Type::U32:
-        case Type::U64:
-            return true;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
         }
-        break;
-    case Type::U32:
-        switch (cast_type) {
-        case Type::U0:
-            return true;
-        case Type::U8:
-            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF;
-        case Type::U32:
-        case Type::U64:
-            return true;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
-    case Type::U64:
-        switch (cast_type) {
-        case Type::U0:
-            return true;
-        case Type::U8:
-            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF;
-        case Type::U32:
-            return expression->kind == Expression_Kind::Number_Literal && expression->number_literal.unwrap <= 0xFF'FF'FF'FF;
-        case Type::U64:
-            return true;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
-
-    case Type::Unchecked:
-        assert(0 && "Unchecked type in a checked context");
-        break;
     }
 
-    assert(0 && "Memory corruption?");
     return false;
 }
 
