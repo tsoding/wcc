@@ -22,6 +22,7 @@ enum class Token_Type
     Less_Equals,
     Plus,
     Minus_Equals,
+    Plus_Equals,
     Minus,
     Semicolon,
     And,

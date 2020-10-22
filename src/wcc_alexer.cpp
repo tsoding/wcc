@@ -30,6 +30,7 @@ void print1(FILE *stream, Token_Type type)
     case Token_Type::Return: print(stream, "Return"); break;
     case Token_Type::True: print(stream, "True"); break;
     case Token_Type::False: print(stream, "False"); break;
+    case Token_Type::Plus_Equals: print(stream, "Plus_Equals"); break;
     }
 }
 
@@ -143,7 +144,11 @@ void Alexer::tokenize()
                 tokens.push(Token {Token_Type::Comma, chop_off(&source, 1)});
                 break;
             case '+':
-                tokens.push(Token {Token_Type::Plus, chop_off(&source, 1)});
+                if (source.count > 1 && source.data[1] == '=') {
+                    tokens.push(Token {Token_Type::Plus_Equals, chop_off(&source, 2)});
+                } else {
+                    tokens.push(Token {Token_Type::Plus, chop_off(&source, 1)});
+                }
                 break;
             case '*':
                 tokens.push(Token {Token_Type::Asterisk, chop_off(&source, 1)});

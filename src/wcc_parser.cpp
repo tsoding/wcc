@@ -328,6 +328,30 @@ Assignment Parser::parse_assignment()
     return assignment;
 }
 
+Assignment Parser::parse_add_assignment()
+{
+    Assignment assignment = {};
+
+    expect_token_type(Token_Type::Symbol);
+    assignment.var_name = tokens.items->text;
+    tokens.chop(1);
+
+    expect_token_type(Token_Type::Plus_Equals);
+    tokens.chop(1);
+
+    assignment.value = memory->alloc<Expression>();
+    assignment.value->kind = Expression_Kind::Plus;
+    assignment.value->binary_op.lhs = memory->alloc<Expression>();
+    assignment.value->binary_op.lhs->kind = Expression_Kind::Variable;
+    assignment.value->binary_op.lhs->variable.name = assignment.var_name;
+    assignment.value->binary_op.rhs = parse_expression();
+
+    expect_token_type(Token_Type::Semicolon);
+    tokens.chop(1);
+
+    return assignment;
+}
+
 Assignment Parser::parse_subtract_assignment()
 {
     Assignment assignment = {};
@@ -396,6 +420,10 @@ Statement Parser::parse_statement()
         case Token_Type::Minus_Equals:
             result.kind = Statement_Kind::Assignment;
             result.assignment = parse_subtract_assignment();
+            break;
+        case Token_Type::Plus_Equals:
+            result.kind = Statement_Kind::Assignment;
+            result.assignment = parse_add_assignment();
             break;
         default:
             result.kind = Statement_Kind::Expression;

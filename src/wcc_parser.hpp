@@ -293,6 +293,7 @@ struct Parser
     Block *parse_block();
     Statement parse_dummy_statement();
     Assignment parse_subtract_assignment();
+    Assignment parse_add_assignment();
     Expression *parse_binary_op(size_t binary_op_priority);
     Expression *parse_expression();
     Expression *parse_primary();

@@ -4,8 +4,7 @@ func is_prime(x: u32): bool {
 		if (x % i == 0) {
 			return false;
 		}
-		// TODO: introduce +=
-		i = i + 1;
+		i += 1;
 	}
 	true;
 }
