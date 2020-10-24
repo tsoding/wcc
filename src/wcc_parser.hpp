@@ -5,6 +5,23 @@
 #include "./wcc_memory.hpp"
 #include "./wcc_types.hpp"
 
+template <typename T>
+struct Seq
+{
+    T unwrap;
+    Seq<T> *next;
+};
+
+template <typename T>
+void print1(FILE *stream, Seq<T> *seq)
+{
+    print(stream, "(");
+    while (seq) {
+        print(stream, seq->unwrap, " ");
+    }
+    print(stream, ")");
+}
+
 struct Var_Def
 {
     String_View name;
@@ -157,12 +174,14 @@ struct Statement
     };
 };
 
+// TODO: Use Seq<T> for Block of Statements
 struct Block
 {
     Statement statement;
     Block *next;
 };
 
+// TODO: Use Seq<T> for Args_List
 struct Args_List
 {
     Var_Def var_def;
@@ -181,12 +200,11 @@ struct Func_Def
 struct Top_Level_Def
 {
     Func_Def func_def;
-    Top_Level_Def *next;
 };
 
 struct Module
 {
-    Top_Level_Def *top_level_defs;
+    Seq<Top_Level_Def> *top_level_defs;
 };
 
 // TODO: pretty-printing for AST
@@ -298,7 +316,7 @@ struct Parser
     Expression *parse_expression();
     Expression *parse_primary();
     Return parse_return();
-    Top_Level_Def *parse_top_level_def();
+    Top_Level_Def parse_top_level_def();
     Module parse_module();
 };
 

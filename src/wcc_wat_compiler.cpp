@@ -547,10 +547,10 @@ S_Expr *Wat_Compiler::compile_module(Module module)
 {
     S_Expr *result = nullptr;
 
-    Top_Level_Def *top_level_def = module.top_level_defs;
-    while (top_level_def) {
-        result = append(result, list(compile_func_def(top_level_def->func_def)));
-        top_level_def = top_level_def->next;
+    auto top_level_defs = module.top_level_defs;
+    while (top_level_defs) {
+        result = append(result, list(compile_func_def(top_level_defs->unwrap.func_def)));
+        top_level_defs = top_level_defs->next;
     }
 
     return cons(atom("module"_sv), result);
