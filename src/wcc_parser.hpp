@@ -197,9 +197,25 @@ struct Func_Def
     size_t offset;
 };
 
+struct Include
+{
+    String_View module_name;
+};
+
+enum class Top_Def_Kind
+{
+    Func_Def,
+    Include,
+};
+
 struct Top_Def
 {
-    Func_Def func_def;
+    Top_Def_Kind kind;
+    union
+    {
+        Func_Def func_def;
+        Include include;
+    };
 };
 
 struct Module
@@ -316,6 +332,7 @@ struct Parser
     Expression *parse_expression();
     Expression *parse_primary();
     Return parse_return();
+    Include parse_include();
     Top_Def parse_top_def();
     Module parse_module();
 };

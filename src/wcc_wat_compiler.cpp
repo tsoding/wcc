@@ -543,13 +543,25 @@ S_Expr *Wat_Compiler::compile_func_def(Func_Def func_def)
         compile_func_body(func_def.body));
 }
 
+S_Expr *Wat_Compiler::compile_include(Include)
+{
+    return nullptr;
+}
+
 S_Expr *Wat_Compiler::compile_module(Module module)
 {
     S_Expr *result = nullptr;
 
     auto top_defs = module.top_defs;
     while (top_defs) {
-        result = append(result, list(compile_func_def(top_defs->unwrap.func_def)));
+        switch (top_defs->unwrap.kind) {
+        case Top_Def_Kind::Func_Def:
+            result = append(result, list(compile_func_def(top_defs->unwrap.func_def)));
+            break;
+        case Top_Def_Kind::Include:
+            result = append(result, list(compile_include(top_defs->unwrap.include)));
+            break;
+        }
         top_defs = top_defs->next;
     }
 

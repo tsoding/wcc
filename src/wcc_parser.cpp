@@ -588,10 +588,40 @@ Expression *Parser::parse_expression()
     return parse_binary_op(0);
 }
 
+Include Parser::parse_include()
+{
+    expect_token_type(Token_Type::Include);
+    tokens.chop(1);
+
+    expect_token_type(Token_Type::Symbol);
+    Include include = {};
+    include.module_name = tokens.items->text;
+    tokens.chop(1);
+
+    expect_token_type(Token_Type::Semicolon);
+    tokens.chop(1);
+
+    return include;
+}
+
 Top_Def Parser::parse_top_def()
 {
+    assert(tokens.count > 0);
+
     Top_Def top_def = {};
-    top_def.func_def = parse_func_def();
+    switch (tokens.items->type) {
+    case Token_Type::Func:
+        top_def.kind = Top_Def_Kind::Func_Def;
+        top_def.func_def = parse_func_def();
+        break;
+    case Token_Type::Include:
+        top_def.kind = Top_Def_Kind::Include;
+        top_def.include = parse_include();
+        break;
+    default:
+        reporter.fail(current_offset(), "Unexpected token in an expression `", tokens.items->type, "`");
+    }
+
     return top_def;
 }
 
