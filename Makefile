@@ -4,7 +4,7 @@ NODE_FLAGS=--unhandled-rejections=strict --experimental-wasm-bigint
 # TODO: there is no test coverage
 TESTS=test_add test_fib test_rot13_char test_prime
 # TODO: ./samples/rot13_str.wc does not compile
-SAMPLES=./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./samples/prime.wasm # ./samples/rot13_str.wasm
+SAMPLES=./samples/add.wasm ./samples/fib.wasm ./samples/rot13_char.wasm ./samples/prime.wasm ./samples/rot13_str.wasm
 
 wcc: $(wildcard src/*.cpp) $(wildcard src/*.hpp)
 	$(CXX) $(WCC_CXXFLAGS) -o wcc src/wcc.cpp $(WCC_LIBS)

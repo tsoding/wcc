@@ -33,6 +33,9 @@ enum class Token_Type
     Return,
     True,
     False,
+    Open_Bracket,
+    Closed_Bracket,
+    Include,
 };
 
 void print1(FILE *stream, Token_Type type);

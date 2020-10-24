@@ -31,6 +31,9 @@ void print1(FILE *stream, Token_Type type)
     case Token_Type::True: print(stream, "True"); break;
     case Token_Type::False: print(stream, "False"); break;
     case Token_Type::Plus_Equals: print(stream, "Plus_Equals"); break;
+    case Token_Type::Open_Bracket: print(stream, "Open_Bracket"); break;
+    case Token_Type::Closed_Bracket: print(stream, "Closed_Bracket"); break;
+    case Token_Type::Include: print(stream, "Include"); break;
     }
 }
 
@@ -93,6 +96,8 @@ void Alexer::tokenize()
                 tokens.push(Token {Token_Type::True, token_text});
             } else if (token_text == "false"_sv) {
                 tokens.push(Token {Token_Type::False, token_text});
+            } else if (token_text == "include"_sv) {
+                tokens.push(Token {Token_Type::Include, token_text});
             } else {
                 tokens.push(Token {Token_Type::Symbol, token_text});
             }
@@ -101,6 +106,12 @@ void Alexer::tokenize()
             tokens.push(Token {Token_Type::Number_Literal, token_text});
         } else {
             switch (*source.data) {
+            case '[':
+                tokens.push(Token {Token_Type::Open_Bracket, chop_off(&source, 1)});
+                break;
+            case ']':
+                tokens.push(Token {Token_Type::Closed_Bracket, chop_off(&source, 1)});
+                break;
             case '(':
                 tokens.push(Token {Token_Type::Open_Paren, chop_off(&source, 1)});
                 break;
