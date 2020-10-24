@@ -1,14 +1,14 @@
 #include "./wcc_parser.hpp"
 #include "./wcc_memory.hpp"
 
-void print1(FILE *stream, Top_Level_Def top_level_def)
+void print1(FILE *stream, Top_Def top_def)
 {
-    print(stream, top_level_def.func_def);
+    print(stream, top_def.func_def);
 }
 
 void print1(FILE *stream, Module module)
 {
-    print(stream, "(module ", module.top_level_defs, ")");
+    print(stream, "(module ", module.top_defs, ")");
 }
 
 void print1(FILE *stream, Expression_Kind expression_kind)
@@ -588,30 +588,30 @@ Expression *Parser::parse_expression()
     return parse_binary_op(0);
 }
 
-Top_Level_Def Parser::parse_top_level_def()
+Top_Def Parser::parse_top_def()
 {
-    Top_Level_Def top_level_def = {};
-    top_level_def.func_def = parse_func_def();
-    return top_level_def;
+    Top_Def top_def = {};
+    top_def.func_def = parse_func_def();
+    return top_def;
 }
 
 Module Parser::parse_module()
 {
     Module module = {};
 
-    Seq<Top_Level_Def> *last_top_level_def = nullptr;
+    Seq<Top_Def> *last_top_def = nullptr;
 
     while (tokens.count > 0) {
-        auto top_level_def = memory->alloc<Seq<Top_Level_Def>>();
-        top_level_def->unwrap = parse_top_level_def();
+        auto top_def = memory->alloc<Seq<Top_Def>>();
+        top_def->unwrap = parse_top_def();
 
-        if (module.top_level_defs == nullptr) {
-            module.top_level_defs = top_level_def;
+        if (module.top_defs == nullptr) {
+            module.top_defs = top_def;
         } else {
-            last_top_level_def->next = top_level_def;
+            last_top_def->next = top_def;
         }
 
-        last_top_level_def = top_level_def;
+        last_top_def = top_def;
     }
 
     return module;

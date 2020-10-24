@@ -197,18 +197,18 @@ struct Func_Def
     size_t offset;
 };
 
-struct Top_Level_Def
+struct Top_Def
 {
     Func_Def func_def;
 };
 
 struct Module
 {
-    Seq<Top_Level_Def> *top_level_defs;
+    Seq<Top_Def> *top_defs;
 };
 
 // TODO: pretty-printing for AST
-void print1(FILE *stream, Top_Level_Def top_level_def);
+void print1(FILE *stream, Top_Def top_def);
 void print1(FILE *stream, Module module);
 void print1(FILE *stream, Statement statement);
 void print1(FILE *stream, Block *block);
@@ -316,7 +316,7 @@ struct Parser
     Expression *parse_expression();
     Expression *parse_primary();
     Return parse_return();
-    Top_Level_Def parse_top_level_def();
+    Top_Def parse_top_def();
     Module parse_module();
 };
 
