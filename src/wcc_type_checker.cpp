@@ -173,11 +173,20 @@ void Type_Checker::check_types_of_assignment(Assignment *assignment, Type expect
     }
 }
 
+void Type_Checker::check_types_of_func_call(Func_Call *)
+{
+    assert(0 && "TODO: Type_Checker::check_types_of_func_call is not implemented");
+}
+
 Expression *Type_Checker::check_types_of_expression(Expression *expression)
 {
     assert(expression->type.kind == Type_Kind::Unchecked);
 
     switch (expression->kind) {
+    case Expression_Kind::Func_Call: {
+        check_types_of_func_call(&expression->func_call);
+    } break;
+
     case Expression_Kind::Type_Cast: {
         expression->type_cast.expression =
             cast_expression_to(

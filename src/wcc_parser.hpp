@@ -52,6 +52,7 @@ enum class Expression_Kind
     Multiply,
     Equals,
     Bool_Literal,
+    Func_Call,
 };
 
 void print1(FILE *stream, Expression_Kind expression_kind);
@@ -111,6 +112,12 @@ struct Binary_Op
     Expression *rhs;
 };
 
+struct Func_Call
+{
+    String_View func_name;
+    Seq<Expression*> *args;
+};
+
 struct Expression
 {
     Expression_Kind kind;
@@ -123,6 +130,7 @@ struct Expression
         Binary_Op binary_op;
         Type_Cast type_cast;
         Bool_Literal bool_literal;
+        Func_Call func_call;
     };
 };
 

@@ -514,6 +514,12 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
     return nullptr;
 }
 
+S_Expr *Wat_Compiler::compile_func_call(Func_Call)
+{
+    assert(0 && "TODO: Wat_Compiler::compile_func_call is not implemented");
+    return nullptr;
+}
+
 S_Expr *Wat_Compiler::compile_expression(Expression *expression)
 {
     switch (expression->kind) {
@@ -541,6 +547,8 @@ S_Expr *Wat_Compiler::compile_expression(Expression *expression)
         return compile_less_equals(expression->binary_op);
     case Expression_Kind::Equals:
         return compile_equals(expression->binary_op);
+    case Expression_Kind::Func_Call:
+        return compile_func_call(expression->func_call);
     }
 
     assert(0 && "Memory corruption?");

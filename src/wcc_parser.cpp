@@ -14,6 +14,9 @@ void print1(FILE *stream, Module module)
 void print1(FILE *stream, Expression_Kind expression_kind)
 {
     switch (expression_kind) {
+    case Expression_Kind::Func_Call:
+        print(stream, "Func_Call");
+        break;
     case Expression_Kind::Number_Literal:
         print(stream, "Number_Literal");
         break;
@@ -95,6 +98,16 @@ void print1(FILE *stream, Expression expression)
         break;
     case Expression_Kind::Equals:
         print(stream, "(== ", *expression.binary_op.lhs, " ", *expression.binary_op.rhs, ")");
+        break;
+    case Expression_Kind::Func_Call:
+        print(stream, "(", expression.func_call.func_name);
+        auto args = expression.func_call.args;
+        while (args) {
+            print(stream, " ", *args->unwrap);
+            args = args->next;
+        }
+        print(stream, ")");
+        break;
     }
 }
 

@@ -139,6 +139,7 @@ struct Wat_Compiler
     S_Expr *compile_block(Block *block);
     S_Expr *compile_func_body(Block *block);
     S_Expr *compile_include(Include include);
+    S_Expr *compile_func_call(Func_Call func_call);
     S_Expr *compile_func_def(Func_Def func_def);
     S_Expr *compile_module(Module module);
 };
