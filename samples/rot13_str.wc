@@ -2,7 +2,7 @@
 
 include rot13_char;
 
-func rot13_str(s: Ptr[u8], n: u32) {
+func rot13_str(s: Ptr[u8], n: u32): u0 {
      while (n > 0) {
          store(s, rot13_char(read(s)));
          s += 1;

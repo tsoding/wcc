@@ -134,24 +134,31 @@ void print1(FILE *stream, Block *block)
 
 void print1(FILE *stream, Type type)
 {
-    switch (type) {
-    case Type::Unchecked:
-        print(stream, "Type::Unchecked");
+    switch (type.kind) {
+    case Type_Kind::Unchecked:
+        print(stream, "<unchecked>");
         break;
-    case Type::U0:
-        print(stream, "u0");
+    case Type_Kind::Primitive_Type:
+        switch (type.primitive_type) {
+        case Primitive_Type::U0:
+            print(stream, "u0");
+            break;
+        case Primitive_Type::U8:
+            print(stream, "u8");
+            break;
+        case Primitive_Type::U32:
+            print(stream, "u32");
+            break;
+        case Primitive_Type::U64:
+            print(stream, "u64");
+            break;
+        case Primitive_Type::Bool:
+            print(stream, "bool");
+            break;
+        }
         break;
-    case Type::U8:
-        print(stream, "u8");
-        break;
-    case Type::U32:
-        print(stream, "u32");
-        break;
-    case Type::U64:
-        print(stream, "u64");
-        break;
-    case Type::Bool:
-        print(stream, "bool");
+    case Type_Kind::Pointer:
+        print(stream, "Ptr[", *type.pointer.type, "]");
         break;
     }
 }
@@ -222,30 +229,52 @@ Args_List *Parser::parse_args_list()
     return result;
 }
 
-Type Parser::parse_type_annotation()
+Type Parser::parse_type()
 {
-    expect_token_type(Token_Type::Colon);
-    tokens.chop(1);
-
     expect_token_type(Token_Type::Symbol);
     auto type_name = tokens.items->text;
 
     if (type_name == "u32"_sv) {
         tokens.chop(1);
-        return Type::U32;
+        return u32_type();
     } else if (type_name == "u64"_sv) {
         tokens.chop(1);
-        return Type::U64;
+        return u64_type();
     } else if (type_name == "u8"_sv) {
         tokens.chop(1);
-        return Type::U8;
+        return u8_type();
     } else if (type_name == "bool"_sv) {
         tokens.chop(1);
-        return Type::Bool;
+        return bool_type();
+    } else if (type_name == "u0"_sv) {
+        tokens.chop(1);
+        return u0_type();
+    } else if (type_name == "Ptr"_sv) {
+        tokens.chop(1);
+        expect_token_type(Token_Type::Open_Bracket);
+        tokens.chop(1);
+
+        Type type = {};
+        type.kind = Type_Kind::Pointer;
+        type.pointer.type = memory->alloc<Type>();
+        *type.pointer.type = parse_type();
+
+        expect_token_type(Token_Type::Closed_Bracket);
+        tokens.chop(1);
+
+        return type;
     } else {
         reporter.fail(current_offset(), "Unknown type `", type_name, "`");
-        return Type::Unchecked;
+        return {};
     }
+}
+
+Type Parser::parse_type_annotation()
+{
+    expect_token_type(Token_Type::Colon);
+    tokens.chop(1);
+
+    return parse_type();
 }
 
 If Parser::parse_if()

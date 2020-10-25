@@ -320,6 +320,7 @@ struct Parser
     While parse_while();
     If parse_if();
     Type parse_type_annotation();
+    Type parse_type();
     Var_Def parse_var_def();
     Args_List *parse_args_list();
     Func_Def parse_func_def();

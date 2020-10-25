@@ -16,7 +16,7 @@ Type Type_Checker::type_of_name(size_t offset, String_View name) const
     }
 
     reporter.fail(offset, "Could not find name `", name, "` in the current scope");
-    return Type::Unchecked;
+    return {};
 }
 
 void Type_Checker::push_scope(Args_List *args_list)
@@ -60,37 +60,45 @@ Expression *Type_Checker::cast_expression_to(Expression *expression, Type type)
 // `drop(<expression>)`. Similarly to how you would do that in raw
 // wasm.
 
-static const Type implicit_conversion_table[][2] = {
-    {Type::U0, Type::U0},
+static const Primitive_Type implicit_conversion_table[][2] = {
+    {Primitive_Type::U0, Primitive_Type::U0},
 
-    {Type::U8, Type::U0},
-    {Type::U8, Type::U8},
-    {Type::U8, Type::U32},
-    {Type::U8, Type::U64},
+    {Primitive_Type::U8, Primitive_Type::U0},
+    {Primitive_Type::U8, Primitive_Type::U8},
+    {Primitive_Type::U8, Primitive_Type::U32},
+    {Primitive_Type::U8, Primitive_Type::U64},
 
-    {Type::U32, Type::U0},
-    {Type::U32, Type::U32},
-    {Type::U32, Type::U64},
+    {Primitive_Type::U32, Primitive_Type::U0},
+    {Primitive_Type::U32, Primitive_Type::U32},
+    {Primitive_Type::U32, Primitive_Type::U64},
 
-    {Type::U64, Type::U0},
-    {Type::U64, Type::U64},
+    {Primitive_Type::U64, Primitive_Type::U0},
+    {Primitive_Type::U64, Primitive_Type::U64},
 
-    {Type::Bool, Type::Bool},
+    {Primitive_Type::Bool, Primitive_Type::Bool},
 };
 const size_t implicit_conversion_table_count =
     sizeof(implicit_conversion_table) / sizeof(implicit_conversion_table[0]);
 
 bool is_expression_implicitly_convertible_to(Expression *expression, Type target_type)
 {
-    assert(expression->type != Type::Unchecked && "Unchecked type in a checked context");
-    assert(target_type != Type::Unchecked && "Unchecked type in a checked context");
+    assert(expression->type.kind != Type_Kind::Unchecked && "Unchecked type in a checked context");
+    assert(target_type.kind != Type_Kind::Unchecked && "Unchecked type in a checked context");
 
-    for (size_t i = 0; i < implicit_conversion_table_count; ++i) {
-        const size_t SOURCE = 0;
-        const size_t TARGET = 1;
-        if (implicit_conversion_table[i][SOURCE] == expression->type &&
-            implicit_conversion_table[i][TARGET] == target_type) {
-            return true;
+    if (expression->type == target_type) {
+        return true;
+    }
+
+    if (expression->type.kind == Type_Kind::Primitive_Type) {
+        if (target_type.kind == Type_Kind::Primitive_Type) {
+            for (size_t i = 0; i < implicit_conversion_table_count; ++i) {
+                const size_t SOURCE = 0;
+                const size_t TARGET = 1;
+                if (implicit_conversion_table[i][SOURCE] == expression->type.primitive_type &&
+                    implicit_conversion_table[i][TARGET] == target_type.primitive_type) {
+                    return true;
+                }
+            }
         }
     }
 
@@ -114,7 +122,7 @@ void Type_Checker::check_types_of_local_var_def(Local_Var_Def *local_var_def, Ty
         check_types_of_expression(local_var_def->value),
         local_var_def->def.type);
 
-    const auto TYPE_OF_LOCAL_VAR_DEF = Type::U0;
+    constexpr auto TYPE_OF_LOCAL_VAR_DEF = u0_type();
 
     if (expected_type != TYPE_OF_LOCAL_VAR_DEF) {
         // TODO: use offset of the local_var_def itself instead of its value;
@@ -128,11 +136,11 @@ void Type_Checker::check_types_of_while(While *hwile, Type expected_type)
 {
     hwile->condition = try_implicitly_convert_expression_to(
         check_types_of_expression(hwile->condition),
-        Type::Bool);
+        bool_type());
     // TODO: use offset of the hwile body itself instead of its condition
-    check_types_of_block(hwile->condition->offset, hwile->body, Type::U0);
+    check_types_of_block(hwile->condition->offset, hwile->body, u0_type());
 
-    const auto TYPE_OF_WHILE = Type::U0;
+    const auto TYPE_OF_WHILE = u0_type();
     if (expected_type != TYPE_OF_WHILE) {
         // TODO: use offset of the hwile itself instead of its condition;
         reporter.fail(hwile->condition->offset, "Expected statement of type `", expected_type, "`, but while-loop construction has the type `", TYPE_OF_WHILE, "`");
@@ -143,7 +151,7 @@ void Type_Checker::check_types_of_if(If *iph, Type expected_type)
 {
     iph->condition = try_implicitly_convert_expression_to(
         check_types_of_expression(iph->condition),
-        Type::Bool);
+        bool_type());
     // TODO: use offsets of the `then` and `else` blocks themselves instead of the if condition
     check_types_of_block(iph->condition->offset, iph->then, expected_type);
     check_types_of_block(iph->condition->offset, iph->elze, expected_type);
@@ -158,7 +166,7 @@ void Type_Checker::check_types_of_assignment(Assignment *assignment, Type expect
         check_types_of_expression(assignment->value),
         type_of_name(offset, assignment->var_name));
 
-    const auto TYPE_OF_ASSIGNMENT = Type::U0;
+    const auto TYPE_OF_ASSIGNMENT = u0_type();
     if (expected_type != TYPE_OF_ASSIGNMENT) {
         // TODO: use offset of the assignment itself instead of its value
         reporter.fail(assignment->value->offset, "Expected statement of type `", expected_type, "`, but assignment has the type `", TYPE_OF_ASSIGNMENT, "`");
@@ -167,7 +175,7 @@ void Type_Checker::check_types_of_assignment(Assignment *assignment, Type expect
 
 Expression *Type_Checker::check_types_of_expression(Expression *expression)
 {
-    assert(expression->type == Type::Unchecked);
+    assert(expression->type.kind == Type_Kind::Unchecked);
 
     switch (expression->kind) {
     case Expression_Kind::Type_Cast: {
@@ -180,16 +188,16 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
 
     case Expression_Kind::Number_Literal: {
         if (expression->number_literal.unwrap <= 0xFF) {
-            expression->type = Type::U8;
+            expression->type = u8_type();
         } else if (expression->number_literal.unwrap <= 0xFF'FF'FF'FF) {
-            expression->type = Type::U32;
+            expression->type = u32_type();
         } else {
-            expression->type = Type::U64;
+            expression->type = u64_type();
         }
     } break;
 
     case Expression_Kind::Bool_Literal: {
-        expression->type = Type::Bool;
+        expression->type = bool_type();
     } break;
 
     case Expression_Kind::Variable: {
@@ -231,17 +239,17 @@ Expression *Type_Checker::check_types_of_expression(Expression *expression)
         } else {
             reporter.fail(expression->binary_op.rhs->offset, "Types `", lhs_type, "` and `", rhs_type, "` are not comparable with each other");
         }
-        expression->type = Type::Bool;
+        expression->type = bool_type();
     } break;
 
     case Expression_Kind::And: {
         expression->binary_op.lhs = try_implicitly_convert_expression_to(
             check_types_of_expression(expression->binary_op.lhs),
-            Type::Bool);
+            bool_type());
         expression->binary_op.rhs = try_implicitly_convert_expression_to(
             check_types_of_expression(expression->binary_op.rhs),
-            Type::Bool);
-        expression->type = Type::Bool;
+            bool_type());
+        expression->type = bool_type();
     } break;
     }
 
@@ -255,7 +263,7 @@ void Type_Checker::check_types_of_return(Return *reeturn, Type expected_type)
         check_types_of_expression(reeturn->value),
         current_func_def->return_type);
 
-    const auto TYPE_OF_RETURN = Type::U0;
+    const auto TYPE_OF_RETURN = u0_type();
     if (expected_type != TYPE_OF_RETURN) {
         // TODO: use offset of the assignment itself instead of its value
         reporter.fail(reeturn->value->offset, "Expected statement of type `", expected_type, "`, but return has the type `", TYPE_OF_RETURN, "`");
@@ -295,14 +303,14 @@ void Type_Checker::check_types_of_block(size_t offset, Block *block, Type expect
     push_scope();
 
     if (!block) {
-        const Type TYPE_OF_EMPTY_BLOCK = Type::U0;
+        const Type TYPE_OF_EMPTY_BLOCK = u0_type();
         if (expected_type != TYPE_OF_EMPTY_BLOCK) {
             reporter.fail(offset, "Expected type `", expected_type, "` but empty block has type `", TYPE_OF_EMPTY_BLOCK, "`");
         }
     }
 
     while (block && block->next != nullptr) {
-        check_types_of_statement(&block->statement, Type::U0);
+        check_types_of_statement(&block->statement, u0_type());
         block = block->next;
     }
 

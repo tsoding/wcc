@@ -40,29 +40,35 @@ S_Expr *Wat_Compiler::wat_ident(String_View s)
 
 S_Expr *Wat_Compiler::wat_name_of_type(Type type)
 {
-    switch (type) {
-    case Type::Unchecked:
-    case Type::U0:
+    switch (type.kind) {
+    case Type_Kind::Unchecked:
         assert(0 && "Something went horribly wrong. Such value should never reach here. Trying to compile a type that does not have a WebAssembly representation.");
         break;
 
-    case Type::U8:
-        return atom("i32"_sv);
+    case Type_Kind::Primitive_Type:
+        switch (type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Something went horribly wrong. Such value should never reach here. Trying to compile a type that does not have a WebAssembly representation.");
+            break;
+
+        case Primitive_Type::U8:
+            return atom("i32"_sv);
+
+        case Primitive_Type::U32:
+            return atom("i32"_sv);
+
+        case Primitive_Type::U64:
+            return atom("i64"_sv);
+
+        case Primitive_Type::Bool:
+            return atom("i32"_sv);
+        }
         break;
 
-    case Type::U32:
+    case Type_Kind::Pointer:
         return atom("i32"_sv);
-        break;
-
-    case Type::U64:
-        return atom("i64"_sv);
-        break;
-
-    case Type::Bool:
-        return atom("i32"_sv);
-        break;
     }
-    return {};
+    return nullptr;
 }
 
 S_Expr *Wat_Compiler::compile_var_def(Var_Def var_def)
@@ -122,21 +128,31 @@ S_Expr *Wat_Compiler::compile_variable(Variable variable)
 
 S_Expr *Wat_Compiler::compile_rem(Binary_Op rem)
 {
-    assert(rem.lhs->type == rem.rhs->type && "Type Checking step didn't work correctly.");
-    switch (rem.lhs->type) {
-    case Type::U0:
-        assert(0 && "Type checking did not work correctly. There is no Rem operation defined for Type::U0.");
-        break;
-    case Type::Bool:
-        assert(0 && "Type checking did not work correctly. There is no Rem operation defined for Type::Bool.");
-        break;
-    case Type::U8:
-    case Type::U32:
-        return list(atom("i32.rem_u"_sv), compile_expression(rem.lhs), compile_expression(rem.rhs));
-    case Type::U64:
-        return list(atom("i64.rem_u"_sv), compile_expression(rem.lhs), compile_expression(rem.rhs));
-    case Type::Unchecked:
+    assert(rem.lhs->type == rem.rhs->type && "Type Checking step didn't work correctly. Left and right operands of Rem operation should have the same type");
+
+    switch (rem.lhs->type.kind) {
+    case Type_Kind::Unchecked:
         assert(0 && "Unchecked type in a checked context");
+        break;
+
+    case Type_Kind::Primitive_Type:
+        switch (rem.lhs->type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Type checking did not work correctly. There is no Rem operation defined for u0.");
+            break;
+        case Primitive_Type::Bool:
+            assert(0 && "Type checking did not work correctly. There is no Rem operation defined for bool.");
+            break;
+        case Primitive_Type::U8:
+        case Primitive_Type::U32:
+            return list(atom("i32.rem_u"_sv), compile_expression(rem.lhs), compile_expression(rem.rhs));
+        case Primitive_Type::U64:
+            return list(atom("i64.rem_u"_sv), compile_expression(rem.lhs), compile_expression(rem.rhs));
+        }
+        break;
+
+    case Type_Kind::Pointer:
+        assert(0 && "Type checking did not work correctly. There is no Rem operation defined for pointers.");
         break;
     }
 
@@ -146,22 +162,31 @@ S_Expr *Wat_Compiler::compile_rem(Binary_Op rem)
 
 S_Expr *Wat_Compiler::compile_minus(Binary_Op minus)
 {
-    assert(minus.lhs->type == minus.rhs->type && "Type Checking step didn't work correctly.");
+    assert(minus.lhs->type == minus.rhs->type && "Type Checking step didn't work correctly. Left and right operands of Minus operation should have the same type");
 
-    switch (minus.lhs->type) {
-    case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for Type::U0.");
+    switch (minus.lhs->type.kind) {
+    case Type_Kind::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
         break;
-    case Type::Bool:
-        assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for Type::Bool.");
+
+    case Type_Kind::Primitive_Type:
+        switch (minus.lhs->type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for u0.");
+            break;
+        case Primitive_Type::Bool:
+            assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for bool.");
+            break;
+        case Primitive_Type::U8:
+        case Primitive_Type::U32:
+            return list(atom("i32.sub"_sv), compile_expression(minus.lhs), compile_expression(minus.rhs));
+        case Primitive_Type::U64:
+            return list(atom("i64.sub"_sv), compile_expression(minus.lhs), compile_expression(minus.rhs));
+        }
         break;
-    case Type::U8:
-    case Type::U32:
-        return list(atom("i32.sub"_sv), compile_expression(minus.lhs), compile_expression(minus.rhs));
-    case Type::U64:
-        return list(atom("i64.sub"_sv), compile_expression(minus.lhs), compile_expression(minus.rhs));
-    case Type::Unchecked:
-        assert(0 && "Type checking step didn't work correctly");
+
+    case Type_Kind::Pointer:
+        assert(0 && "Type Checking step didn't work correctly. There is no minus operation defined for pointers.");
         break;
     }
 
@@ -171,22 +196,30 @@ S_Expr *Wat_Compiler::compile_minus(Binary_Op minus)
 
 S_Expr *Wat_Compiler::compile_multiply(Binary_Op multiply)
 {
-    assert(multiply.lhs->type == multiply.rhs->type && "Type Checking step didn't work correctly.");
+    assert(multiply.lhs->type == multiply.rhs->type && "Type Checking step didn't work correctly. Left and right operands of Minus operation should have the same type");
 
-    switch (multiply.lhs->type) {
-    case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for Type::U0.");
+    switch (multiply.lhs->type.kind) {
+    case Type_Kind::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
         break;
-    case Type::Bool:
-        assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for Type::Bool.");
+    case Type_Kind::Primitive_Type:
+        switch (multiply.lhs->type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for u0.");
+            break;
+        case Primitive_Type::Bool:
+            assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for bool.");
+            break;
+        case Primitive_Type::U8:
+        case Primitive_Type::U32:
+            return list(atom("i32.mul"_sv), compile_expression(multiply.lhs), compile_expression(multiply.rhs));
+        case Primitive_Type::U64:
+            return list(atom("i64.mul"_sv), compile_expression(multiply.lhs), compile_expression(multiply.rhs));
+        }
         break;
-    case Type::U8:
-    case Type::U32:
-        return list(atom("i32.mul"_sv), compile_expression(multiply.lhs), compile_expression(multiply.rhs));
-    case Type::U64:
-        return list(atom("i64.mul"_sv), compile_expression(multiply.lhs), compile_expression(multiply.rhs));
-    case Type::Unchecked:
-        assert(0 && "Type checking step didn't work correctly");
+
+    case Type_Kind::Pointer:
+        assert(0 && "Type Checking step didn't work correctly. There is no multiply operation defined for pointer.");
         break;
     }
 
@@ -196,22 +229,30 @@ S_Expr *Wat_Compiler::compile_multiply(Binary_Op multiply)
 
 S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
 {
-    assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly.");
+    assert(plus.lhs->type == plus.rhs->type && "Type Checking step didn't work correctly. Left and right operands of Minus operation should have the same type");
 
-    switch (plus.lhs->type) {
-    case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no plus operation defined for Type::U0");
+    switch (plus.lhs->type.kind) {
+    case Type_Kind::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
+
+    case Type_Kind::Primitive_Type:
+        switch (plus.lhs->type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Type Checking step didn't work correctly. There is no plus operation defined for u0");
+            break;
+        case Primitive_Type::Bool:
+            assert(0 && "Type Checking step didn't work correctly. There is no plus operation defined for bool");
+            break;
+        case Primitive_Type::U8:
+        case Primitive_Type::U32:
+            return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
+        case Primitive_Type::U64:
+            return list(atom("i64.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
+        }
         break;
-    case Type::Bool:
-        assert(0 && "Type Checking step didn't work correctly. There is no plus operation defined for Type::Bool");
-        break;
-    case Type::U8:
-    case Type::U32:
-        return list(atom("i32.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
-    case Type::U64:
-        return list(atom("i64.add"_sv), compile_expression(plus.lhs), compile_expression(plus.rhs));
-    case Type::Unchecked:
-        assert(0 && "Type checking step didn't work correctly");
+
+    case Type_Kind::Pointer:
+        assert(0 && "Type Checking step didn't work correctly. There is no plus operation defined for pointer");
         break;
     }
 
@@ -221,24 +262,30 @@ S_Expr *Wat_Compiler::compile_plus(Binary_Op plus)
 
 S_Expr *Wat_Compiler::compile_less_equals(Binary_Op less_equals)
 {
-    assert(less_equals.lhs->type == less_equals.rhs->type && "Type Checking step didn't work correctly.");
+    assert(less_equals.lhs->type == less_equals.rhs->type && "Type Checking step didn't work correctly. Left and right operands of Minus operation should have the same type");
 
-    switch (less_equals.lhs->type) {
-    case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no less_equals operation defined for Type::U0");
+    switch (less_equals.lhs->type.kind) {
+    case Type_Kind::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
         break;
-    case Type::Bool:
-        assert(0 && "Type Checking step didn't work correctly. There is no less_equals operation defined for Type::Bool");
+    case Type_Kind::Primitive_Type:
+        switch (less_equals.lhs->type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Type Checking step didn't work correctly. There is no less_equals operation defined for u0");
+            break;
+        case Primitive_Type::Bool:
+            assert(0 && "Type Checking step didn't work correctly. There is no less_equals operation defined for bool");
+            break;
+        case Primitive_Type::U8:
+            return list(atom("i32.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
+        case Primitive_Type::U32:
+            return list(atom("i32.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
+        case Primitive_Type::U64:
+            return list(atom("i64.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
+        }
         break;
-    case Type::U8:
+    case Type_Kind::Pointer:
         return list(atom("i32.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
-    case Type::U32:
-        return list(atom("i32.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
-    case Type::U64:
-        return list(atom("i64.le_u"_sv), compile_expression(less_equals.lhs), compile_expression(less_equals.rhs));
-    case Type::Unchecked:
-        assert(0 && "Type checking step didn't work correctly");
-        break;
     }
 
     assert(0 && "Memory corruption?");
@@ -247,22 +294,28 @@ S_Expr *Wat_Compiler::compile_less_equals(Binary_Op less_equals)
 
 S_Expr *Wat_Compiler::compile_equals(Binary_Op equals)
 {
-    assert(equals.lhs->type == equals.rhs->type && "Type Checking step didn't work correctly.");
+    assert(equals.lhs->type == equals.rhs->type && "Type Checking step didn't work correctly. Left and right operands of Minus operation should have the same type");
 
-    switch (equals.lhs->type) {
-    case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no equals operation defined for Type::U0");
-    case Type::Bool:
-        assert(0 && "Type Checking step didn't work correctly. There is no equals operation defined for Type::Bool");
-    case Type::U8:
-        return list(atom("i32.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
-    case Type::U32:
-        return list(atom("i32.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
-    case Type::U64:
-        return list(atom("i64.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
-    case Type::Unchecked:
-        assert(0 && "Type checking step didn't work correctly");
+    switch (equals.lhs->type.kind) {
+    case Type_Kind::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
         break;
+    case Type_Kind::Primitive_Type:
+        switch (equals.lhs->type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Type Checking step didn't work correctly. There is no equals operation defined for u0");
+        case Primitive_Type::Bool:
+            assert(0 && "Type Checking step didn't work correctly. There is no equals operation defined for bool");
+        case Primitive_Type::U8:
+            return list(atom("i32.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
+        case Primitive_Type::U32:
+            return list(atom("i32.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
+        case Primitive_Type::U64:
+            return list(atom("i64.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
+        }
+        break;
+    case Type_Kind::Pointer:
+        return list(atom("i32.eq"_sv), compile_expression(equals.lhs), compile_expression(equals.rhs));
     }
 
     assert(0 && "Memory corruption?");
@@ -271,22 +324,30 @@ S_Expr *Wat_Compiler::compile_equals(Binary_Op equals)
 
 S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
 {
-    assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly.");
+    assert(greater.lhs->type == greater.rhs->type && "Type Checking step didn't work correctly. Left and right operands of Minus operation should have the same type");
 
-    switch (greater.lhs->type) {
-    case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no greater operation defined for Type::U0");
-    case Type::Bool:
-        assert(0 && "Type Checking step didn't work correctly. There is no greater operation defined for Type::Bool");
-    case Type::U8:
-        return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
-    case Type::U32:
-        return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
-    case Type::U64:
-        return list(atom("i64.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
-    case Type::Unchecked:
-        assert(0 && "Type checking step didn't work correctly");
+    switch (greater.lhs->type.kind) {
+    case Type_Kind::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
         break;
+
+    case Type_Kind::Primitive_Type:
+        switch (greater.lhs->type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Type Checking step didn't work correctly. There is no greater operation defined for u0");
+        case Primitive_Type::Bool:
+            assert(0 && "Type Checking step didn't work correctly. There is no greater operation defined for bool");
+        case Primitive_Type::U8:
+            return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
+        case Primitive_Type::U32:
+            return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
+        case Primitive_Type::U64:
+            return list(atom("i64.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
+        }
+        break;
+
+    case Type_Kind::Pointer:
+        return list(atom("i32.gt_u"_sv), compile_expression(greater.lhs), compile_expression(greater.rhs));
     }
 
     assert(0 && "Memory corruption?");
@@ -295,26 +356,34 @@ S_Expr *Wat_Compiler::compile_greater(Binary_Op greater)
 
 S_Expr *Wat_Compiler::compile_and(Binary_Op andd)
 {
-    assert(andd.lhs->type == andd.rhs->type && "Type Checking step didn't work correctly.");
+    assert(andd.lhs->type == andd.rhs->type && "Type Checking step didn't work correctly. Left and right operands of Minus operation should have the same type");
 
-    switch (andd.lhs->type) {
-    case Type::U0:
-        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U0");
+    switch (andd.lhs->type.kind) {
+    case Type_Kind::Unchecked:
+        assert(0 && "Unchecked type in a checked context");
         break;
-    case Type::U8:
-        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U8");
+
+    case Type_Kind::Primitive_Type:
+        switch (andd.lhs->type.primitive_type) {
+        case Primitive_Type::U0:
+            assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for u0");
+            break;
+        case Primitive_Type::U8:
+            assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for u8");
+            break;
+        case Primitive_Type::U32:
+            assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for u32");
+            break;
+        case Primitive_Type::U64:
+            assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for u64");
+            break;
+        case Primitive_Type::Bool:
+            return list(atom("i32.and"_sv), compile_expression(andd.lhs), compile_expression(andd.rhs));
+        }
         break;
-    case Type::U32:
-        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U32");
-        break;
-    case Type::U64:
-        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for Type::U64");
-        break;
-    case Type::Bool:
-        return list(atom("i32.and"_sv), compile_expression(andd.lhs), compile_expression(andd.rhs));
-    case Type::Unchecked:
-        assert(0 && "Type checking step didn't work correctly");
-        break;
+
+    case Type_Kind::Pointer:
+        assert(0 && "Type Checking step didn't work correctly. There is no and operation defined for pointer");
     }
 
     assert(0 && "Memory corruption?");
@@ -325,76 +394,118 @@ S_Expr *Wat_Compiler::compile_type_cast(Type_Cast type_cast)
 {
     auto expression = compile_expression(type_cast.expression);
 
-    switch (type_cast.expression->type) {
-    case Type::U0:
+    switch (type_cast.expression->type.kind) {
+    case Type_Kind::Primitive_Type:
+        switch (type_cast.expression->type.primitive_type) {
+        case Primitive_Type::U0:
+            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+
+        case Primitive_Type::Bool:
+            switch (type_cast.type.kind) {
+            case Type_Kind::Primitive_Type:
+                switch (type_cast.type.primitive_type) {
+                case Primitive_Type::Bool:
+                    return expression;
+                case Primitive_Type::U0:
+                case Primitive_Type::U8:
+                case Primitive_Type::U32:
+                case Primitive_Type::U64:
+                    reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+                    break;
+                }
+                break;
+            case Type_Kind::Pointer:
+                reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+                break;
+
+            case Type_Kind::Unchecked:
+                assert(0 && "Unchecked type in a checked context");
+                break;
+            }
+            break;
+
+        case Primitive_Type::U8:
+            switch (type_cast.type.kind) {
+            case Type_Kind::Unchecked:
+                assert(0 && "Unchecked type in a checked context");
+                break;
+
+            case Type_Kind::Primitive_Type:
+                switch (type_cast.type.primitive_type) {
+                case Primitive_Type::U0:
+                    return list(atom("drop"_sv), expression);
+                case Primitive_Type::U8:
+                case Primitive_Type::U32:
+                case Primitive_Type::Bool:
+                    return expression;
+                case Primitive_Type::U64:
+                    return list(atom("i64.extend_u/i32"_sv), expression);
+                }
+                break;
+
+            case Type_Kind::Pointer:
+                return expression;
+            }
+            break;
+
+        case Primitive_Type::U32:
+            switch (type_cast.type.kind) {
+            case Type_Kind::Primitive_Type:
+                switch (type_cast.type.primitive_type) {
+                case Primitive_Type::U0:
+                    return list(atom("drop"_sv), expression);
+                case Primitive_Type::U8:
+                    reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+                case Primitive_Type::Bool:
+                case Primitive_Type::U32:
+                    return expression;
+                case Primitive_Type::U64:
+                    return list(atom("i64.extend_u/i32"_sv), expression);
+                }
+                break;
+
+            case Type_Kind::Pointer:
+                return expression;
+
+            case Type_Kind::Unchecked:
+                assert(0 && "Unchecked type in a checked context");
+                break;
+            }
+            break;
+
+        case Primitive_Type::U64:
+            switch (type_cast.type.kind) {
+            case Type_Kind::Primitive_Type:
+                switch (type_cast.type.primitive_type) {
+                case Primitive_Type::U0:
+                    return list(atom("drop"_sv), expression);
+                case Primitive_Type::U8:
+                case Primitive_Type::U32:
+                case Primitive_Type::Bool:
+                    reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+                    break;
+                case Primitive_Type::U64:
+                    return expression;
+                }
+                break;
+
+            case Type_Kind::Pointer:
+                reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
+                break;
+
+            case Type_Kind::Unchecked:
+                assert(0 && "Unchecked type in a checked context");
+                break;
+            }
+            break;
+        }
+        break;
+
+    case Type_Kind::Pointer:
         reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
-
-    case Type::Bool:
-        switch (type_cast.type) {
-        case Type::Bool:
-            return expression;
-        case Type::U0:
-        case Type::U8:
-        case Type::U32:
-        case Type::U64:
-            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
-
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
         break;
 
-    case Type::U8:
-        switch (type_cast.type) {
-        case Type::U0:
-            return list(atom("drop"_sv), expression);
-        case Type::U8:
-        case Type::U32:
-        case Type::Bool:
-            return expression;
-        case Type::U64:
-            return list(atom("i64.extend_u/i32"_sv), expression);
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
-
-    case Type::U32:
-        switch (type_cast.type) {
-        case Type::U0:
-            return list(atom("drop"_sv), expression);
-        case Type::U8:
-            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
-        case Type::Bool:
-        case Type::U32:
-            return expression;
-        case Type::U64:
-            return list(atom("i64.extend_u/i32"_sv), expression);
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
-
-    case Type::U64:
-        switch (type_cast.type) {
-        case Type::U0:
-            return list(atom("drop"_sv), expression);
-        case Type::U8:
-        case Type::U32:
-        case Type::Bool:
-            reporter.fail(type_cast.expression->offset, "Impossible to convert `", type_cast.expression->type, "` to `", type_cast.type, "`");
-        case Type::U64:
-            return expression;
-        case Type::Unchecked:
-            assert(0 && "Unchecked type in a checked context");
-            break;
-        }
-        break;
-
-    case Type::Unchecked:
+    case Type_Kind::Unchecked:
         assert(0 && "Unchecked type in a checked context");
         break;
     }
@@ -449,7 +560,8 @@ S_Expr *Wat_Compiler::compile_statement(Statement statement)
             //  (if (result <type>)
             //    (then <then-branch>)
             //    (else (else-branch)))
-            if (statement.type == Type::U0) {
+            if (statement.type.kind == Type_Kind::Primitive_Type &&
+                statement.type.primitive_type == Primitive_Type::U0) {
                 return list(
                     atom("if"_sv),
                     compile_expression(statement.iph.condition),
@@ -545,6 +657,7 @@ S_Expr *Wat_Compiler::compile_func_def(Func_Def func_def)
 
 S_Expr *Wat_Compiler::compile_include(Include)
 {
+    assert(0 && "TODO: Include compilation is not implemented");
     return nullptr;
 }
 
