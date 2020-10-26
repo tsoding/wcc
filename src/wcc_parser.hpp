@@ -337,6 +337,7 @@ struct Parser
     Statement parse_dummy_statement();
     Assignment parse_subtract_assignment();
     Assignment parse_add_assignment();
+    Func_Call parse_func_call();
     Expression *parse_binary_op(size_t binary_op_priority);
     Expression *parse_expression();
     Expression *parse_primary();

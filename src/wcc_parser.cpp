@@ -548,6 +548,12 @@ Local_Var_Def Parser::parse_local_var_def()
     return local_var_def;
 }
 
+Func_Call Parser::parse_func_call()
+{
+    assert(0 && "TODO: Function call parsing is not implemented");
+    return {};
+}
+
 Expression *Parser::parse_primary()
 {
     assert(tokens.count > 0);
@@ -579,9 +585,14 @@ Expression *Parser::parse_primary()
     } break;
 
     case Token_Type::Symbol: {
-        primary_expression->kind = Expression_Kind::Variable;
-        primary_expression->variable.name = tokens.items->text;
-        tokens.chop(1);
+        if (tokens.count > 1 && tokens.items[1].type == Token_Type::Open_Paren) {
+            primary_expression->kind = Expression_Kind::Func_Call;
+            primary_expression->func_call = parse_func_call();
+        } else {
+            primary_expression->kind = Expression_Kind::Variable;
+            primary_expression->variable.name = tokens.items->text;
+            tokens.chop(1);
+        }
     } break;
 
     case Token_Type::Open_Paren: {
