@@ -101,7 +101,7 @@ void print1(FILE *stream, Expression expression)
         break;
     case Expression_Kind::Func_Call:
         print(stream, "(", expression.func_call.func_name);
-        auto args = expression.func_call.args;
+        auto args = expression.func_call.args.begin;
         while (args) {
             print(stream, " ", *args->unwrap);
             args = args->next;
@@ -682,19 +682,10 @@ Module Parser::parse_module()
 {
     Module module = {};
 
-    Seq<Top_Def> *last_top_def = nullptr;
-
     while (tokens.count > 0) {
-        auto top_def = memory->alloc<Seq<Top_Def>>();
+        auto top_def = memory->alloc<Seq_Item<Top_Def>>();
         top_def->unwrap = parse_top_def();
-
-        if (module.top_defs == nullptr) {
-            module.top_defs = top_def;
-        } else {
-            last_top_def->next = top_def;
-        }
-
-        last_top_def = top_def;
+        module.top_defs.push_back(top_def);
     }
 
     return module;

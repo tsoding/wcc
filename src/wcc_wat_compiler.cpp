@@ -673,7 +673,7 @@ S_Expr *Wat_Compiler::compile_module(Module module)
 {
     S_Expr *result = nullptr;
 
-    auto top_defs = module.top_defs;
+    auto top_defs = module.top_defs.begin;
     while (top_defs) {
         switch (top_defs->unwrap.kind) {
         case Top_Def_Kind::Func_Def:

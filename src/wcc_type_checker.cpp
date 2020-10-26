@@ -344,7 +344,7 @@ void Type_Checker::check_types_of_func_def(Func_Def *func_def)
 
 void Type_Checker::check_types_of_module(Module *module)
 {
-    auto top_defs = module->top_defs;
+    auto top_defs = module->top_defs.begin;
     while (top_defs) {
         check_types_of_func_def(&top_defs->unwrap.func_def);
         top_defs = top_defs->next;

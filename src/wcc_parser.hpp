@@ -6,18 +6,38 @@
 #include "./wcc_types.hpp"
 
 template <typename T>
-struct Seq
+struct Seq_Item
 {
     T unwrap;
-    Seq<T> *next;
+    Seq_Item<T> *next;
 };
 
 template <typename T>
-void print1(FILE *stream, Seq<T> *seq)
+struct Seq
+{
+    Seq_Item<T> *begin;
+    Seq_Item<T> *end;
+
+    void push_back(Seq_Item<T> *item)
+    {
+        if (end == nullptr) {
+            assert(begin == nullptr);
+            begin = item;
+        } else {
+            end->next = item;
+        }
+        end = item;
+    };
+};
+
+template <typename T>
+void print1(FILE *stream, Seq<T> seq)
 {
     print(stream, "(");
-    while (seq) {
-        print(stream, seq->unwrap, " ");
+    auto iter = seq.begin;
+    while (iter) {
+        print(stream, iter->unwrap, " ");
+        iter = iter->next;
     }
     print(stream, ")");
 }
@@ -115,7 +135,7 @@ struct Binary_Op
 struct Func_Call
 {
     String_View func_name;
-    Seq<Expression*> *args;
+    Seq<Expression*> args;
 };
 
 struct Expression
@@ -228,7 +248,7 @@ struct Top_Def
 
 struct Module
 {
-    Seq<Top_Def> *top_defs;
+    Seq<Top_Def> top_defs;
 };
 
 // TODO: pretty-printing for AST
