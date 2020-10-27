@@ -550,7 +550,37 @@ Local_Var_Def Parser::parse_local_var_def()
 
 Func_Call Parser::parse_func_call()
 {
-    assert(0 && "TODO: Function call parsing is not implemented");
+    Func_Call func_call = {};
+
+    expect_token_type(Token_Type::Symbol);
+    func_call.func_name = tokens.items->text;
+    tokens.chop(1);
+
+    expect_token_type(Token_Type::Open_Paren);
+    tokens.chop(1);
+
+    while (tokens.count > 0 && tokens.items->type != Token_Type::Closed_Paren) {
+        auto item = memory->alloc<Seq_Item<Expression*>>();
+        item->unwrap = parse_expression();
+
+        func_call.args.push_back(item);
+
+        if (tokens.count == 0) {
+            reporter.fail(item->unwrap->offset, "Expected `", Token_Type::Comma, "` or `", Token_Type::Closed_Paren, "` buit found EOF");
+        }
+
+        if (tokens.items->type != Token_Type::Comma && tokens.items->type != Token_Type::Closed_Paren) {
+            reporter.fail(item->unwrap->offset, "Expected `", Token_Type::Comma, "` or `", Token_Type::Closed_Paren, "` buit found `", tokens.items->text, "`");
+        }
+
+        if (tokens.items->type == Token_Type::Comma) {
+            tokens.chop(1);
+        }
+    }
+
+    expect_token_type(Token_Type::Closed_Paren);
+    tokens.chop(1);
+
     return {};
 }
 
