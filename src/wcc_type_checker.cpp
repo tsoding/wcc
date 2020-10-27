@@ -342,11 +342,29 @@ void Type_Checker::check_types_of_func_def(Func_Def *func_def)
     pop_scope();
 }
 
+void Type_Checker::check_types_of_include(Include *)
+{
+    assert(0 && "Type_Checker::check_types_of_include() is not implemented");
+}
+
+void Type_Checker::check_types_of_top_def(Top_Def *top_def)
+{
+    switch (top_def->kind) {
+    case Top_Def_Kind::Func_Def:
+        check_types_of_func_def(&top_def->func_def);
+        break;
+
+    case Top_Def_Kind::Include:
+        check_types_of_include(&top_def->include);
+        break;
+    }
+}
+
 void Type_Checker::check_types_of_module(Module *module)
 {
     auto top_defs = module->top_defs.begin;
     while (top_defs) {
-        check_types_of_func_def(&top_defs->unwrap.func_def);
+        check_types_of_top_def(&top_defs->unwrap);
         top_defs = top_defs->next;
     }
 }

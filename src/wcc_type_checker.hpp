@@ -33,6 +33,8 @@ struct Type_Checker
     void check_types_of_assignment(Assignment *assignment, Type expected_type);
     void check_types_of_func_call(Func_Call *func_call);
     Expression *check_types_of_expression(Expression *expression);
+    void check_types_of_top_def(Top_Def *top_def);
+    void check_types_of_include(Include *include);
 
     void check_types_of_statement(Statement *statement, Type expected_type);
     void check_types_of_block(size_t offset, Block *block, Type expected_type);
